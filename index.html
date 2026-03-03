@@ -45,6 +45,7 @@
         /* TOTAL */
         .total-banner { background: #2c3e50; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
         .tax-info { font-size: 0.7em; font-weight: normal; opacity: 0.8; }
+        #itemsRemaining { font-size: 0.8em; color: #27ae60; display: block; }
 
         /* LISTE */
         #itemList { list-style: none; padding: 0; margin: 0; max-height: 320px; overflow-y: auto; background: #fff; border-bottom: 1px solid #eee; }
@@ -116,7 +117,10 @@
             </div>
         </div>
         <div class="total-banner">
-            <div>TOTAL <span class="tax-info">(Inclus)</span></div>
+            <div>
+                TOTAL <span class="tax-info">(Inclus)</span>
+                <span id="itemsRemaining"></span>
+            </div>
             <div id="displayTotal">0.00 $</div>
         </div>
         <ul id="itemList"></ul>
@@ -124,7 +128,6 @@
     </div>
 
     <script>
-        // LOGIQUE DE L'APPLI
         const magasins = [
             {id: "IGA", name: "IGA", logo: "iga.png"}, {id: "Metro", name: "Metro", logo: "metro.png"},
             {id: "Maxi", name: "Maxi", logo: "maxi.png"}, {id: "SuperC", name: "Super C", logo: "superc.png"},
@@ -175,29 +178,41 @@
         }
 
         function afficherItems() {
-            const ul = document.getElementById('itemList'), totalDisplay = document.getElementById('displayTotal');
+            const ul = document.getElementById('itemList'), totalDisplay = document.getElementById('displayTotal'), remainingDisplay = document.getElementById('itemsRemaining');
             ul.innerHTML = "";
             let totalGeneral = 0;
+            let itemsToFind = 0;
+
             if(db[magActuel]) {
                 db[magActuel].forEach((it, idx) => {
                     const li = document.createElement('li');
                     if (typeof it === 'string') it = { t: it, p: 0, q: 1, c: false, tx: false };
                     if (it.tx === undefined) it.tx = false;
                     db[magActuel][idx] = it;
+                    
                     const sousTotal = (it.p || 0) * (it.q || 1);
                     const prixAvecTaxe = it.tx ? sousTotal * 1.14975 : sousTotal;
-                    if(!it.c) totalGeneral += prixAvecTaxe;
+                    
+                    // On additionne tout au total, même si c'est coché
+                    totalGeneral += prixAvecTaxe;
+                    
+                    // On compte combien il en reste à prendre
+                    if(!it.c) itemsToFind++;
+
                     li.innerHTML = `
                         <input type="checkbox" ${it.c ? 'checked' : ''} onchange="toggleCheck(${idx})">
-                        <div class="item-info" onclick="openModal(${idx})" style="${it.c ? 'text-decoration:line-through;color:gray' : ''}">
+                        <div class="item-info" onclick="openModal(${idx})" style="${it.c ? 'text-decoration:line-through; color:#bdc3c7;' : ''}">
                             <span class="item-name">${it.t} ${it.tx ? '<span class="badge-tax">TAX</span>' : ''}</span>
-                            <span class="item-sub">${it.q}x ${it.p.toFixed(2)}$ | ${prixAvecTaxe.toFixed(2)}$</span>
+                            <span class="item-sub" style="${it.c ? 'text-decoration:none; opacity:0.7;' : ''}">
+                                ${it.q}x ${it.p.toFixed(2)}$ | ${prixAvecTaxe.toFixed(2)}$
+                            </span>
                         </div>
                         <span class="btn-del" onclick="event.stopPropagation(); del(${idx})">✕</span>`;
                     ul.appendChild(li);
                 });
             }
             totalDisplay.innerText = totalGeneral.toFixed(2) + " $";
+            remainingDisplay.innerText = itemsToFind > 0 ? "Reste " + itemsToFind + " à prendre" : "Panier complet !";
         }
 
         function openModal(idx) {
@@ -221,7 +236,8 @@
         function clearList() { if(confirm("Vider la liste ?")) { db[magActuel] = []; save(); afficherItems(); } }
         function save() { localStorage.setItem('monEpicerieDB', JSON.stringify(db)); }
         function majBadges() {
-            magasins.forEach(m => {
+            masguins = magasins;
+            masguins.forEach(m => {
                 const n = db[m.id] ? db[m.id].length : 0;
                 const bC = document.getElementById('count-'+m.id), bK = document.getElementById('check-'+m.id);
                 if(bC) { bC.innerText = n; bC.style.visibility = n > 0 ? 'visible' : 'hidden'; }
@@ -230,8 +246,6 @@
         }
         window.onload = majBadges;
 
-        // --- C'EST ICI QUE LA MAGIE ARRIVE ---
-        // Force le téléphone à garder l'appli en mémoire (Service Worker "Inline")
         if ('serviceWorker' in navigator) {
             const swCode = `
                 const cacheName = 'epicerie-v1';
