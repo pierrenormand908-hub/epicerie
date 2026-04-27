@@ -10,7 +10,7 @@
     <style>
         :root { --primary: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --text: #2c3e50; }
         
-        /* FIX GLOBAL POUR L'IPHONE */
+        /* FIX GLOBAL */
         html, body { 
             height: 100%; 
             overflow: hidden; 
@@ -37,16 +37,27 @@
         .img-intro { width: 80%; max-width: 250px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-start { background: var(--primary); color: white; padding: 18px 50px; border: none; border-radius: 35px; font-size: 1.3em; font-weight: bold; cursor: pointer; }
 
-        /* GRILLE MAGASINS (CORRIGÉE ICI) */
+        /* TITRE "MES LISTES" DESCENDU */
+        .header-magasins { 
+            text-align: center; 
+            padding-top: 50px; /* Descend le titre sous l'encoche iPhone */
+            padding-bottom: 15px; 
+            margin: 0; 
+            background: white; 
+            flex-shrink: 0; 
+            border-bottom: 1px solid #eee;
+        }
+
+        /* GRILLE MAGASINS */
         .grid-magasins { 
             display: grid; 
             grid-template-columns: 1fr 1fr; 
             gap: 15px; 
             padding: 15px; 
-            overflow-y: auto; /* Autorise le défilement vertical */
-            flex: 1; /* Remplit l'espace entre le titre et le bas */
-            -webkit-overflow-scrolling: touch; /* Défilement fluide iOS */
-            padding-bottom: 50px; /* Espace pour ne pas coller au bas */
+            overflow-y: auto; 
+            flex: 1; 
+            -webkit-overflow-scrolling: touch; 
+            padding-bottom: 80px; /* Plus d'espace au fond */
         }
         .magasin-card { background: white; padding: 15px; border-radius: 18px; position: relative; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); height: fit-content; }
         .magasin-logo { width: 70px; height: 70px; object-fit: contain; margin-bottom: 5px; }
@@ -56,8 +67,16 @@
         .badge-count { position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; font-weight: bold; display: flex; align-items: center; justify-content: center; visibility: hidden; }
         .badge-check { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 11px; display: flex; align-items: center; justify-content: center; visibility: hidden; }
 
-        /* HEADER */
-        .header-liste { padding: 15px; background: white; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        /* HEADER LISTE DESCENDU AUSSI */
+        .header-liste { 
+            padding: 45px 15px 15px 15px; /* On descend le haut de la page de liste */
+            background: white; 
+            display: flex; 
+            align-items: center; 
+            gap: 15px; 
+            border-bottom: 1px solid #ddd; 
+            flex-shrink: 0; 
+        }
         .btn-back { border: none; background: #eee; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; cursor: pointer; }
 
         /* INPUT AREA */
@@ -129,7 +148,7 @@
     </div>
 
     <div id="page-magasins" class="page">
-        <h2 style="text-align: center; padding: 15px 0; margin:0; background:white; flex-shrink:0;">Mes Listes</h2>
+        <h2 class="header-magasins">Mes Listes</h2>
         <div class="grid-magasins" id="grille"></div>
     </div>
 
