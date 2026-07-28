@@ -64,17 +64,116 @@
             padding-bottom: 40px;
         }
 
-        .magasin-card { background: white; padding: 15px; border-radius: 18px; position: relative; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); height: fit-content; }
-        .magasin-logo { width: 60px; height: 60px; object-fit: contain; margin-bottom: 5px; }
-        .magasin-name { font-weight: bold; font-size: 0.9em; margin: 0; color: #555; }
+        .magasin-card { 
+            background: white; 
+            padding: 15px; 
+            border-radius: 18px; 
+            position: relative; 
+            text-align: center; 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
+            height: fit-content; 
+        }
         
-        .badge-count { position: absolute; top: 10px; right: 10px; background: var(--danger); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; visibility: hidden; }
-        .badge-check { position: absolute; top: 10px; left: 10px; background: var(--primary); color: white; border-radius: 50%; width: 20px; height: 20px; font-size: 10px; display: flex; align-items: center; justify-content: center; visibility: hidden; }
+        /* Zone réservée au logo */
+        .logo-container {
+            width: 100%;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 8px;
+            overflow: visible; 
+        }
 
-        /* LISTE PAGE */
-        .header-liste { padding: 45px 15px 15px 15px; background: white; display: flex; align-items: center; gap: 15px; border-bottom: 1px solid #ddd; flex-shrink: 0; }
-        .btn-back { border: none; background: #eee; border-radius: 50%; width: 35px; height: 35px; font-size: 18px; }
+        .magasin-logo { 
+            max-width: 85%; 
+            max-height: 55px; 
+            object-fit: contain; 
+            transform-origin: center center;
+            display: block;
+        }
         
+        .magasin-name { 
+            font-weight: bold; 
+            font-size: 0.9em; 
+            margin: 0; 
+            color: #555; 
+            padding: 0 20px; /* Espace pour ne pas chevaucher les badges en bas */
+        }
+        
+        /* BADGES EN BAS DE CHAQUE CÔTÉ DU NOM */
+        .badge-check { 
+            position: absolute; 
+            bottom: 12px; 
+            left: 12px; 
+            background: var(--primary); 
+            color: white; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            font-size: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            visibility: hidden; 
+        }
+
+        .badge-count { 
+            position: absolute; 
+            bottom: 12px; 
+            right: 12px; 
+            background: var(--danger); 
+            color: white; 
+            border-radius: 50%; 
+            width: 20px; 
+            height: 20px; 
+            font-size: 10px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            visibility: hidden; 
+        }
+
+        /* LISTE PAGE (GRAND LOGO ET NOM TAILLE STANDARD) */
+        .header-liste { 
+            padding: 40px 15px 12px 15px; 
+            background: white; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            position: relative; 
+            border-bottom: 1px solid #ddd; 
+            flex-shrink: 0; 
+        }
+        
+        .btn-back { 
+            position: absolute; 
+            left: 15px; 
+            top: 50%; 
+            transform: translateY(-50%); 
+            border: none; 
+            background: #eee; 
+            border-radius: 50%; 
+            width: 40px; 
+            height: 40px; 
+            font-size: 20px; 
+            cursor: pointer;
+        }
+        
+        .logo-header-actuel { 
+            width: 75px; 
+            height: 75px; 
+            object-fit: contain; 
+        }
+
+        .titre-header-actuel { 
+            margin: 4px 0 0 0; 
+            font-size: 1em; 
+            color: var(--text); 
+            font-weight: bold;
+        }
+
         .input-area { padding: 10px 15px; background: white; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
         .input-row { display: flex; gap: 8px; }
         input { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; }
@@ -117,8 +216,8 @@
     <div id="page-liste" class="page">
         <div class="header-liste">
             <button class="btn-back" onclick="nav('page-magasins')">←</button>
-            <img id="logo-actuel" src="" style="width: 35px; height: 35px; object-fit: contain;">
-            <h3 id="titre-magasin" style="margin:0"></h3>
+            <img id="logo-actuel" class="logo-header-actuel" src="">
+            <h3 id="titre-magasin" class="titre-header-actuel"></h3>
         </div>
         <div class="input-area">
             <div class="input-row">
@@ -152,14 +251,21 @@
     </div>
 
     <script>
-       const magasins = [
-            {id: "IGA", name: "IGA", logo: "iga.png"}, {id: "Metro", name: "Metro", logo: "metro.png"},
-            {id: "Maxi", name: "Maxi", logo: "maxi.png"}, {id: "SuperC", name: "Super C", logo: "superc.png"},
-            {id: "Tigre", name: "Tigre Géant", logo: "tigre.png"}, {id: "Walmart", name: "Walmart", logo: "walmart.png"},
-            {id: "Costco", name: "Costco", logo: "costco.png"}, {id: "Dollo", name: "Dollorama", logo: "dollo.png"},
-            {id: "Uniprix", name: "Uniprix", logo: "uniprix.png"}, {id: "JeanCoutu", name: "Jean Coutu", logo: "jeancoutu.png"},
-            {id: "Brunet", name: "Brunet", logo: "brunet.png"}, {id: "Pharmaprix", name: "Pharmaprix", logo: "pharmaprix.png"},
-            {id: "Proxim", name: "Proxim", logo: "proxim.png"}, {id: "Familiprix", name: "Familiprix", logo: "familiprix.png"}
+        const magasins = [
+            {id: "IGA", name: "IGA", logo: "iga.png", scale: 1.7},
+            {id: "Metro", name: "Metro", logo: "metro.png", scale: 0.9},
+            {id: "Maxi", name: "Maxi", logo: "maxi.png", scale: 1.1},
+            {id: "SuperC", name: "Super C", logo: "superc.png", scale: 1.0},
+            {id: "Tigre", name: "Tigre Géant", logo: "tigre.png", scale: 1.1},
+            {id: "Walmart", name: "Walmart", logo: "walmart.png", scale: 1.1},
+            {id: "Costco", name: "Costco", logo: "costco.png", scale: 1.0},
+            {id: "Dollo", name: "Dollorama", logo: "dollo.png", scale: 1.1},
+            {id: "Uniprix", name: "Uniprix", logo: "uniprix.png", scale: 1.0},
+            {id: "JeanCoutu", name: "Jean Coutu", logo: "jeancoutu.png", scale: 1.2},
+            {id: "Brunet", name: "Brunet", logo: "brunet.png", scale: 1.0},
+            {id: "Pharmaprix", name: "Pharmaprix", logo: "pharmaprix.png", scale: 1.2},
+            {id: "Proxim", name: "Proxim", logo: "proxim.png", scale: 1.0},
+            {id: "Familiprix", name: "Familiprix", logo: "familiprix.png", scale: 1.0}
         ];
 
         let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
@@ -168,12 +274,15 @@
 
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
+            const scaleFactor = m.scale || 1.0;
             grille.innerHTML += `
                 <div class="magasin-card" onclick="ouvrirMagasin('${m.id}', '${m.logo}', '${m.name}')">
+                    <div class="logo-container">
+                        <img src="${m.logo}" class="magasin-logo" style="transform: scale(${scaleFactor});">
+                    </div>
+                    <p class="magasin-name">${m.name}</p>
                     <div id="check-${m.id}" class="badge-check">✓</div>
                     <div id="count-${m.id}" class="badge-count">0</div>
-                    <img src="${m.logo}" class="magasin-logo">
-                    <p class="magasin-name">${m.name}</p>
                 </div>`;
         });
 
