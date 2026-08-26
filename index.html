@@ -21,7 +21,7 @@
 
         /* HEADERS MAGASINS & INVENTAIRE */
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 40px 15px 15px 15px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
-        .header-top h2 { margin: 0; font-size: 1.4em; text-transform: capitalize; }
+        .header-top h2 { margin: 0; font-size: 1.4em; }
         .btn-header { background: #eee; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
 
         .grid-magasins { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; flex: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: 40px; }
@@ -53,6 +53,7 @@
 
         /* INVENTAIRE & CARTES */
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
+        .inv-category-title { font-size: 1.1em; font-weight: bold; color: var(--primary); margin: 15px 0 8px 5px; text-transform: capitalize; }
         .inv-card { background: white; padding: 15px; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
         .inv-card-info { flex: 1; }
         .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
@@ -85,7 +86,7 @@
     <!-- MAGASINS / LISTES -->
     <div id="page-magasins" class="page">
         <div class="header-top">
-            <button class="btn-header" onclick="ouvrirInventaireDefaut()">Inventaire</button>
+            <button class="btn-header" onclick="nav('page-inventaire')">Inventaire</button>
             <h2>Mes Listes</h2>
             <div style="width: 70px;"></div>
         </div>
@@ -125,7 +126,7 @@
             <div style="width: 70px;"></div>
         </div>
         <div class="inv-content" id="invContainer">
-            <!-- Les cartes de la catégorie active s'affichent ici -->
+            <!-- Les catégories et cartes d'inventaire s'afficheront ici -->
         </div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
         <div class="navbar-bottom">
@@ -155,7 +156,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: Cannages, Pâtes..." style="margin-top:4px; margin-bottom:10px">
+            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: Sauces, Légumes..." style="margin-top:4px; margin-bottom:10px">
             <datalist id="catSuggestions">
                 <option value="Cannages">
                 <option value="Pâtes">
@@ -221,7 +222,7 @@
         ];
 
         let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
-        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || { "Cannages": [], "Pâtes": [], "Collations": [], "Boîtes": [] };
+        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || {};
         let magActuel = "";
         let currentEditIdx = null;
         let invTabActuel = "Cannages";
@@ -248,15 +249,6 @@
             if(targetPage) targetPage.classList.add('active');
             if(id === 'page-magasins') majBadges();
             if(id === 'page-inventaire') afficherInventaire();
-        }
-
-        function ouvrirInventaireDefaut() {
-            invTabActuel = "Cannages";
-            // Sélectionner visuellement le premier onglet (Cannages)
-            const firstNavBtn = document.querySelector('.navbar-bottom .nav-item');
-            document.querySelectorAll('.navbar-bottom .nav-item').forEach(b => b.classList.remove('active-nav'));
-            if(firstNavBtn) firstNavBtn.classList.add('active-nav');
-            nav('page-inventaire');
         }
 
         function ouvrirMagasin(id, logo, name) {
@@ -329,6 +321,10 @@
             invTabActuel = tab;
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
             if(el) el.classList.add('active-nav');
+            
+            // L'en-tête prend FIXEMENT le nom de l'onglet cliqué et n'en bouge plus
+            document.getElementById('invHeaderTitle').innerText = tab;
+            
             afficherInventaire();
         }
 
@@ -336,7 +332,7 @@
             modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
-            document.getElementById('invCatInput').value = invTabActuel;
+            document.getElementById('invCatInput').value = "";
             document.getElementById('invModal').style.display = 'flex';
         }
         function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
@@ -356,16 +352,6 @@
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             
             closeInvModal();
-            invTabActuel = cat;
-            
-            // S'assurer que l'onglet actif correspond dans la barre du bas si présent
-            document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => {
-                if(btn.textContent.trim().toLowerCase() === cat.toLowerCase()) {
-                    document.querySelectorAll('.navbar-bottom .nav-item').forEach(b => b.classList.remove('active-nav'));
-                    btn.classList.add('active-nav');
-                }
-            });
-
             afficherInventaire();
         }
 
@@ -405,39 +391,42 @@
 
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             closeEditInvModal();
-            invTabActuel = newCat;
             afficherInventaire();
         }
 
         function afficherInventaire() {
-            // L'en-tête affiche exactement la catégorie de l'onglet actif, sans changer tout seul
-            document.getElementById('invHeaderTitle').innerText = invTabActuel;
-
             const container = document.getElementById('invContainer');
             container.innerHTML = "";
             
-            const items = invDb[invTabActuel];
+            const categories = Object.keys(invDb);
             
-            if(!items || items.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucun article dans cette catégorie</div>`;
+            if(categories.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucune catégorie ni article. Appuyez sur + pour ajouter.</div>`;
                 return;
             }
 
-            items.forEach((item, idx) => {
-                container.innerHTML += `
-                    <div class="inv-card">
-                        <div class="inv-card-info">
-                            <div class="inv-card-title">${item.name}</div>
-                        </div>
-                        <div class="action-btn-group">
-                            <button class="icon-btn" onclick="openEditInvModal('${invTabActuel}', ${idx})" title="Éditer">✏️</button>
-                            <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
-                                <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
-                                <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                                <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
-                            </div>
-                        </div>
-                    </div>`;
+            categories.forEach(cat => {
+                const items = invDb[cat];
+                if(items && items.length > 0) {
+                    container.innerHTML += `<div class="inv-category-title">${cat}</div>`;
+                    
+                    items.forEach((item, idx) => {
+                        container.innerHTML += `
+                            <div class="inv-card">
+                                <div class="inv-card-info">
+                                    <div class="inv-card-title">${item.name}</div>
+                                </div>
+                                <div class="action-btn-group">
+                                    <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
+                                    <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
+                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
+                                        <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
+                                    </div>
+                                </div>
+                            </div>`;
+                    });
+                }
             });
         }
 
