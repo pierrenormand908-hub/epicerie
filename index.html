@@ -51,10 +51,13 @@
         .item-info { flex: 1; }
         .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
-        /* INVENTAIRE & CARTES */
+        /* INVENTAIRE & CARTES SWIPE */
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
         .inv-category-title { font-size: 1.1em; font-weight: bold; color: var(--primary); margin: 15px 0 8px 5px; text-transform: capitalize; }
-        .inv-card { background: white; padding: 15px; border-radius: 14px; margin-bottom: 10px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        
+        .inv-card-container { position: relative; margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: var(--danger); }
+        .inv-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .inv-card { background: white; padding: 15px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; transition: transform 0.2s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
         .inv-card-info { flex: 1; }
         .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
         
@@ -156,8 +159,6 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            
-            <!-- Champ catégorie cliquable qui ouvre la fenêtre de gestion des catégories -->
             <div style="display: flex; gap: 8px; margin-top: 4px; margin-bottom: 10px;">
                 <select id="invCatSelect" style="flex: 1;"></select>
                 <button type="button" onclick="openCatManagerModal()" style="background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 12px; font-weight: bold; cursor: pointer;">⚙️</button>
@@ -179,7 +180,7 @@
         </div>
     </div>
 
-    <!-- NOUVELLE MODALE : GESTION DES CATEGORIES (AJOUT / SUPPRESSION) -->
+    <!-- MODALE GESTION DES CATEGORIES -->
     <div id="catManagerModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0">Gérer les catégories</h3>
@@ -380,7 +381,7 @@
 
         function closeCatManagerModal() {
             document.getElementById('catManagerModal').style.display = 'none';
-            remanierSelectCategories('invCatSelect'); // Actualiser la liste principale
+            remanierSelectCategories('invCatSelect');
         }
 
         function addNewCategory() {
@@ -435,6 +436,15 @@
             afficherInventaire();
         }
 
+        function deleteInvItem(cat, idx) {
+            invDb[cat].splice(idx, 1);
+            if(invDb[cat].length === 0) {
+                delete invDb[cat];
+            }
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            afficherInventaire();
+        }
+
         function openEditInvModal(cat, idx) {
             currentEditInvCat = cat;
             currentEditInvIdx = idx;
@@ -470,6 +480,76 @@
             afficherInventaire();
         }
 
+        /* GESTION DU GLISSER VERS LA GAUCHE (SWIPE) SUR LES CARTES */
+        function initSwipeEvents() {
+            const cards = document.querySelectorAll('.inv-card');
+            cards.forEach(card => {
+                let startX = 0;
+                let currentX = 0;
+                let isDragging = false;
+
+                card.addEventListener('touchstart', (e) => {
+                    startX = e.touches[0].clientX;
+                    isDragging = true;
+                    card.style.transition = 'none';
+                });
+
+                card.addEventListener('touchmove', (e) => {
+                    if (!isDragging) return;
+                    currentX = e.touches[0].clientX;
+                    let diff = currentX - startX;
+                    // Limiter le glissement vers la gauche (max -80px) et empêcher vers la droite (> 0)
+                    if (diff < 0) {
+                        card.style.transform = `translateX(${Math.max(diff, -80)}px)`;
+                    } else {
+                        card.style.transform = `translateX(0px)`;
+                    }
+                });
+
+                card.addEventListener('touchend', (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    card.style.transition = 'transform 0.2s ease';
+                    let diff = currentX - startX;
+                    if (diff < -50) {
+                        card.style.transform = `translateX(-80px)`; // Reste ouvert sur le bouton supprimer
+                    } else {
+                        card.style.transform = `translateX(0px)`;
+                    }
+                });
+
+                // Support souris pour test sur PC
+                card.addEventListener('mousedown', (e) => {
+                    startX = e.clientX;
+                    isDragging = true;
+                    card.style.transition = 'none';
+                });
+
+                window.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    currentX = e.clientX;
+                    let diff = currentX - startX;
+                    if (diff < 0) {
+                        card.style.transform = `translateX(${Math.max(diff, -80)}px)`;
+                    } else {
+                        card.style.transform = `translateX(0px)`;
+                    }
+                });
+
+                window.addEventListener('mouseup', () => {
+                    if (!isDragging) return;
+                    isDragging = false;
+                    card.style.transition = 'transform 0.2s ease';
+                    let diff = currentX - startX;
+                    if (diff < -50) {
+                        card.style.transform = `translateX(-80px)`;
+                    } else {
+                        card.style.transform = `translateX(0px)`;
+                    }
+                });
+            });
+        }
+
         function afficherInventaire() {
             const container = document.getElementById('invContainer');
             container.innerHTML = "";
@@ -488,22 +568,28 @@
                     
                     items.forEach((item, idx) => {
                         container.innerHTML += `
-                            <div class="inv-card">
-                                <div class="inv-card-info">
-                                    <div class="inv-card-title">${item.name}</div>
-                                </div>
-                                <div class="action-btn-group">
-                                    <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
-                                    <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
-                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
-                                        <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
+                            <div class="inv-card-container">
+                                <div class="inv-delete-bg" onclick="deleteInvItem('${cat}', ${idx})">Suppr.</div>
+                                <div class="inv-card">
+                                    <div class="inv-card-info">
+                                        <div class="inv-card-title">${item.name}</div>
+                                    </div>
+                                    <div class="action-btn-group">
+                                        <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
+                                        <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
+                                            <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
+                                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                                            <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>`;
                     });
                 }
             });
+
+            // Activer les interactions tactiles de glissement après affichage
+            setTimeout(initSwipeEvents, 50);
         }
 
         function majBadges() {
