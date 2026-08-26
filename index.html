@@ -156,13 +156,13 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: Sauces, Légumes..." style="margin-top:4px; margin-bottom:10px">
-            <datalist id="catSuggestions">
-                <option value="Cannages">
-                <option value="Pâtes">
-                <option value="Collations">
-                <option value="Boîtes">
-            </datalist>
+            <select id="invCatSelect" style="margin-top:4px; margin-bottom:10px">
+                <!-- Les options de catégories enregistrées s'injectent ici -->
+            </select>
+            
+            <!-- Option pour ajouter une nouvelle catégorie si besoin -->
+            <input type="text" id="invNewCatInput" placeholder="Ou nouvelle catégorie..." style="margin-bottom:10px; display:none;">
+            <button type="button" id="toggleNewCatBtn" onclick="toggleNewCategoryInput()" style="background:none; border:none; color:var(--primary); font-weight:bold; font-size:0.85em; cursor:pointer; padding:0; margin-bottom:10px;">+ Ajouter une nouvelle catégorie</button>
 
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
@@ -185,7 +185,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Modifier le produit</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <input type="text" id="editInvCatInput" style="margin-top:4px; margin-bottom:10px">
+            <select id="editInvCatSelect" style="margin-top:4px; margin-bottom:10px"></select>
 
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="editInvNameInput" style="margin-top:4px; margin-bottom:12px">
@@ -322,19 +322,46 @@
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
             if(el) el.classList.add('active-nav');
             
-            // L'en-tête prend FIXEMENT le nom de l'onglet cliqué et n'en bouge plus
+            // L'en-tête prend FIXEMENT le nom de l'onglet cliqué
             document.getElementById('invHeaderTitle').innerText = tab;
             
             afficherInventaire();
+        }
+
+        function remanierSelectCategories(selectId) {
+            const select = document.getElementById(selectId);
+            select.innerHTML = "";
+            let categories = Object.keys(invDb);
+            
+            if(categories.length === 0) {
+                categories = ["Sauces", "Pâtes", "Cannages", "Collations", "Boîtes"];
+            }
+
+            categories.forEach(cat => {
+                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            });
         }
 
         function openInvModal() {
             modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
-            document.getElementById('invCatInput').value = "";
+            document.getElementById('invNewCatInput').value = "";
+            document.getElementById('invNewCatInput').style.display = "none";
+            document.getElementById('toggleNewCatBtn').style.display = "block";
+            
+            remanierSelectCategories('invCatSelect');
             document.getElementById('invModal').style.display = 'flex';
         }
+
+        function toggleNewCategoryInput() {
+            const input = document.getElementById('invNewCatInput');
+            const btn = document.getElementById('toggleNewCatBtn');
+            input.style.display = "block";
+            input.focus();
+            btn.style.display = "none";
+        }
+
         function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
         
         function adjustModalQty(val) {
@@ -344,7 +371,11 @@
 
         function saveInvItem() {
             const name = document.getElementById('invNameInput').value.trim();
-            let cat = document.getElementById('invCatInput').value.trim();
+            const newCatInput = document.getElementById('invNewCatInput').value.trim();
+            const selectCat = document.getElementById('invCatSelect').value;
+            
+            let cat = (newCatInput !== "" && document.getElementById('invNewCatInput').style.display === "block") ? newCatInput : selectCat;
+            
             if(!name || !cat) return;
             
             if(!invDb[cat]) invDb[cat] = [];
@@ -366,7 +397,9 @@
             currentEditInvIdx = idx;
             const item = invDb[cat][idx];
             editInvQtyVal = item.qty;
-            document.getElementById('editInvCatInput').value = cat;
+            
+            remanierSelectCategories('editInvCatSelect');
+            document.getElementById('editInvCatSelect').value = cat;
             document.getElementById('editInvNameInput').value = item.name;
             document.getElementById('editInvModalQty').innerText = editInvQtyVal;
             document.getElementById('editInvModal').style.display = 'flex';
@@ -378,7 +411,7 @@
         }
         function saveEditInvItem() {
             const newName = document.getElementById('editInvNameInput').value.trim();
-            let newCat = document.getElementById('editInvCatInput').value.trim();
+            let newCat = document.getElementById('editInvCatSelect').value;
             if(!newName || !newCat) return;
 
             invDb[currentEditInvCat].splice(currentEditInvIdx, 1);
