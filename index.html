@@ -1,832 +1,365 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>Mon Épicerie Pro</title>
-  <link rel="apple-touch-icon" href="epicerie.png">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@500;600&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mon Épicerie Pro</title>
+    <link rel="apple-touch-icon" href="epicerie.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root { --primary: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --text: #2c3e50; }
+        html, body { height: 100%; width: 100%; background: var(--bg); margin: 0; padding: 0; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+        .page { display: none; height: 100vh; width: 100%; flex-direction: column; box-sizing: border-box; position: absolute; top: 0; left: 0; overflow: hidden; }
+        .active { display: flex; }
 
-  <style>
-    :root { 
-      --primary: #27ae60; 
-      --danger: #e74c3c; 
-      --bg: #f4f7f6; 
-      --text: #2c3e50; 
-    }
-    
-    /* FIX GLOBAL POUR IOS */
-    html, body { 
-      height: 100%; 
-      width: 100%; 
-      background: var(--bg);
-      margin: 0; 
-      padding: 0;
-      overflow: hidden;
-    }
+        /* ACCUEIL */
+        #page-accueil { text-align: center; padding: 20px; justify-content: center; align-items: center; background: white; z-index: 10; }
+        .img-intro { width: 80%; max-width: 250px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-start { background: var(--primary); color: white; padding: 18px 50px; border: none; border-radius: 35px; font-size: 1.3em; font-weight: bold; cursor: pointer; }
 
-    body { 
-      font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; 
-      color: var(--text); 
-      -webkit-font-smoothing: antialiased; 
-    }
-    
-    /* PAGES */
-    .page { 
-      display: none; 
-      height: 100vh; 
-      width: 100%; 
-      flex-direction: column;
-      box-sizing: border-box;
-      position: absolute;
-      top: 0; 
-      left: 0;
-      overflow: hidden;
-    }
-    .active { display: flex; }
+        /* HEADERS MAGASINS & INVENTAIRE */
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 40px 15px 15px 15px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
+        .header-top h2 { margin: 0; font-size: 1.4em; }
+        .btn-header { background: #eee; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
 
-    /* ACCUEIL */
-    #page-accueil { 
-      text-align: center; 
-      padding: 20px; 
-      justify-content: center; 
-      align-items: center; 
-      background: white; 
-      z-index: 10;
-    }
-    .img-intro { 
-      width: 80%; 
-      max-width: 250px; 
-      border-radius: 20px; 
-      margin-bottom: 30px; 
-      box-shadow: 0 10px 20px rgba(0,0,0,0.1); 
-    }
-    .btn-start { 
-      background: var(--primary); 
-      color: white; 
-      padding: 18px 50px; 
-      border: none; 
-      border-radius: 35px; 
-      font-size: 1.3em; 
-      font-weight: bold; 
-      cursor: pointer; 
-      box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
-    }
+        .grid-magasins { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; flex: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: 40px; }
+        .magasin-card { background: white; padding: 15px; border-radius: 18px; position: relative; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); height: fit-content; cursor: pointer; }
+        .logo-container { width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .magasin-logo { max-width: 85%; max-height: 55px; object-fit: contain; }
+        .magasin-name { font-weight: bold; font-size: 0.9em; margin: 0; color: #555; padding: 0 20px; }
+        .badge-check, .badge-count { position: absolute; bottom: 12px; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; color: white; visibility: hidden; }
+        .badge-check { left: 12px; background: var(--primary); }
+        .badge-count { right: 12px; background: var(--danger); }
 
-    /* HEADER MAGASINS */
-    .header-magasins { 
-      position: relative;
-      padding: 50px 15px 15px 15px; 
-      margin: 0; 
-      background: white; 
-      border-bottom: 1px solid #eee; 
-      flex-shrink: 0; 
-      text-align: center;
-    }
+        /* LISTE PAGE */
+        .header-liste { padding: 40px 15px 12px 15px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        .btn-back { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); border: none; background: #eee; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
+        .logo-header-actuel { width: 75px; height: 75px; object-fit: contain; }
+        .titre-header-actuel { margin: 4px 0 0 0; font-size: 1em; color: var(--text); font-weight: bold; }
 
-    .header-magasins h2 {
-      margin: 0;
-      font-size: 1.5em;
-      color: var(--text);
-    }
+        .input-area { padding: 10px 15px; background: white; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .input-row { display: flex; gap: 8px; }
+        input { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        #itemInput { flex: 1; }
+        .btn-add { background: var(--primary); color: white; border: none; width: 50px; border-radius: 10px; font-size: 24px; cursor: pointer; }
+        .total-banner { background: #2c3e50; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-shrink: 0; }
+        
+        #itemList, .inv-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; background: #fff; -webkit-overflow-scrolling: touch; }
+        li { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; gap: 12px; }
+        .item-info { flex: 1; }
+        .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
-    /* STYLES DU BOUTON LOGOUT ANIMÉ */
-    .logoutButton {
-      --figure-duration: 100ms;
-      --transform-figure: none;
-      --walking-duration: 100ms;
-      --transform-arm1: none;
-      --transform-wrist1: none;
-      --transform-arm2: none;
-      --transform-wrist2: none;
-      --transform-leg1: none;
-      --transform-calf1: none;
-      --transform-leg2: none;
-      --transform-calf2: none;
+        /* INVENTAIRE & NAVBAR */
+        .inv-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: white; }
+        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
+        .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #77f; cursor: pointer; gap: 3px; }
+        .nav-item span { font-size: 1.4em; }
+        .nav-item.active-nav { color: var(--primary); font-weight: bold; }
 
-      background: none;
-      border: 0;
-      color: #8a8a8a;
-      cursor: pointer;
-      display: block;
-      font-family: 'Quicksand', sans-serif;
-      font-size: 14px;
-      font-weight: 500;
-      height: 37px;
-      outline: none;
-      padding: 0 0 0 20px;
-      perspective: 100px;
-      position: absolute;
-      right: 15px;
-      bottom: 10px;
-      text-align: left;
-      width: 100px;
-      -webkit-tap-highlight-color: transparent;
-    }
+        .btn-fab { position: absolute; right: 20px; bottom: 85px; width: 55px; height: 55px; background: var(--primary); color: white; border-radius: 50%; border: none; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; }
 
-    .logoutButton::before {
-      background-color: #ffffff;
-      border-radius: 8px;
-      content: '';
-      display: block;
-      height: 100%;
-      left: 0;
-      position: absolute;
-      top: 0;
-      transform: none;
-      transition: transform 50ms ease;
-      width: 100%;
-      z-index: 2;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    }
-
-    .logoutButton:hover .door {
-      transform: rotateY(20deg);
-    }
-
-    .logoutButton:active::before {
-      transform: scale(.96);
-    }
-
-    .logoutButton:active .door {
-      transform: rotateY(28deg);
-    }
-
-    .logoutButton.clicked::before {
-      transform: none;
-    }
-
-    .logoutButton.clicked .door {
-      transform: rotateY(35deg);
-    }
-
-    .logoutButton.door-slammed .door {
-      transform: none;
-      transition: transform 100ms ease-in 250ms;
-    }
-
-    .logoutButton.falling {
-      animation: shake 200ms linear;
-    }
-
-    .logoutButton.falling .bang {
-      animation: flash 300ms linear;
-    }
-
-    .logoutButton.falling .figure {
-      animation: spin 1000ms infinite linear;
-      bottom: -1080px;
-      opacity: 0;
-      right: 1px;
-      transition: transform calc(var(--figure-duration) * 1ms) linear,
-                  bottom calc(var(--figure-duration) * 1ms) cubic-bezier(0.7, 0.1, 1, 1) 100ms,
-                  opacity calc(var(--figure-duration) * 0.25ms) linear calc(var(--figure-duration) * 0.75ms);
-      z-index: 1;
-    }
-
-    .button-text {
-      color: #1c1c1c;
-      font-weight: 600;
-      position: relative;
-      z-index: 10;
-    }
-
-    .logoutButton svg {
-      display: block;
-      position: absolute;
-    }
-
-    .figure {
-      bottom: 5px;
-      fill: #000000;
-      right: 18px;
-      transform: var(--transform-figure);
-      transition: transform calc(var(--figure-duration) * 1ms) cubic-bezier(0.2, 0.1, 0.80, 0.9);
-      width: 30px;
-      z-index: 4;
-    }
-
-    .door,
-    .doorway {
-      bottom: 4px;
-      right: 12px;
-      width: 32px;
-    } 
-
-    .door {
-      fill: #1c1c1c;
-      transform: rotateY(20deg);
-      transform-origin: 100% 50%;
-      transform-style: preserve-3d;
-      transition: transform 200ms ease;
-      z-index: 5;
-    }
-
-    .door path {
-      fill: #000000;
-      stroke: #000000;
-      stroke-width: 4;
-    }
-
-    /* CADRE NOIR ET FOND BLANC À L'INTÉRIEUR DE LA PORTE */
-    .doorway {
-      fill: #ffffff;
-      stroke: #000000;
-      stroke-width: 4;
-      z-index: 3;
-    }
-
-    .bang {
-      fill: #1c1c1c;
-      stroke: none;
-      opacity: 0;
-    }
-
-    .arm1, .wrist1, .arm2, .wrist2, .leg1, .calf1, .leg2, .calf2 {
-      transition: transform calc(var(--walking-duration) * 1ms) ease-in-out;
-    }
-
-    .arm1 {
-      transform: var(--transform-arm1);
-      transform-origin: 52% 45%;
-    }
-
-    .wrist1 {
-      transform: var(--transform-wrist1);
-      transform-origin: 59% 55%;
-    }
-
-    .arm2 {
-      transform: var(--transform-arm2);
-      transform-origin: 47% 43%;
-    }
-
-    .wrist2 {
-      transform: var(--transform-wrist2);
-      transform-origin: 35% 47%;
-    }
-
-    .leg1 {
-      transform: var(--transform-leg1);
-      transform-origin: 47% 64.5%;
-    }
-
-    .calf1 {
-      transform: var(--transform-calf1);
-      transform-origin: 55.5% 71.5%;
-    }
-
-    .leg2 {
-      transform: var(--transform-leg2);
-      transform-origin: 43% 63%;
-    }
-
-    .calf2 {
-      transform: var(--transform-calf2);
-      transform-origin: 41.5% 73%;
-    }
-
-    @keyframes spin {
-      from { transform: rotate(0deg) scale(0.94); }
-      to { transform: rotate(359deg) scale(0.94); }
-    }
-
-    @keyframes shake {
-      0% { transform: rotate(-1deg); }
-      50% { transform: rotate(2deg); }
-      100% { transform: rotate(-1deg); }
-    }
-
-    @keyframes flash {
-      0% { opacity: 0.4; }
-      100% { opacity: 0; }
-    }
-
-    /* GRILLE MAGASINS */
-    .grid-magasins { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 15px; 
-      padding: 15px; 
-      flex: 1; 
-      overflow-y: auto; 
-      min-height: 0;
-      -webkit-overflow-scrolling: touch; 
-      padding-bottom: 40px;
-    }
-
-    .magasin-card { 
-      background: white; 
-      padding: 15px; 
-      border-radius: 18px; 
-      position: relative; 
-      text-align: center; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-      height: fit-content; 
-    }
-    
-    .logo-container {
-      width: 100%;
-      height: 60px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 8px;
-      overflow: visible; 
-    }
-
-    .magasin-logo { 
-      max-width: 85%; 
-      max-height: 55px; 
-      object-fit: contain; 
-      transform-origin: center center;
-      display: block;
-    }
-    
-    .magasin-name { 
-      font-weight: bold; 
-      font-size: 0.9em; 
-      margin: 0; 
-      color: #555; 
-      padding: 0 20px; 
-    }
-    
-    .badge-check { 
-      position: absolute; 
-      bottom: 12px; 
-      left: 12px; 
-      background: var(--primary); 
-      color: white; 
-      border-radius: 50%; 
-      width: 20px; 
-      height: 20px; 
-      font-size: 10px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      visibility: hidden; 
-    }
-
-    .badge-count { 
-      position: absolute; 
-      bottom: 12px; 
-      right: 12px; 
-      background: var(--danger); 
-      color: white; 
-      border-radius: 50%; 
-      width: 20px; 
-      height: 20px; 
-      font-size: 10px; 
-      display: flex; 
-      align-items: center; 
-      justify-content: center; 
-      visibility: hidden; 
-    }
-
-    /* LISTE PAGE */
-    .header-liste { 
-      padding: 40px 15px 12px 15px; 
-      background: white; 
-      display: flex; 
-      flex-direction: column; 
-      align-items: center; 
-      justify-content: center; 
-      position: relative; 
-      border-bottom: 1px solid #ddd; 
-      flex-shrink: 0; 
-    }
-    
-    .btn-back { 
-      position: absolute; 
-      left: 15px; 
-      top: 50%; 
-      transform: translateY(-50%); 
-      border: none; 
-      background: #eee; 
-      border-radius: 50%; 
-      width: 40px; 
-      height: 40px; 
-      font-size: 20px; 
-      cursor: pointer;
-    }
-    
-    .logo-header-actuel { 
-      width: 75px; 
-      height: 75px; 
-      object-fit: contain; 
-    }
-
-    .titre-header-actuel { 
-      margin: 4px 0 0 0; 
-      font-size: 1em; 
-      color: var(--text); 
-      font-weight: bold;
-    }
-
-    .input-area { padding: 10px 15px; background: white; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
-    .input-row { display: flex; gap: 8px; }
-    input { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; }
-    #itemInput { flex: 1; }
-    .btn-add { background: var(--primary); color: white; border: none; width: 50px; border-radius: 10px; font-size: 24px; }
-    
-    .total-banner { background: #2c3e50; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-shrink: 0; }
-    
-    #itemList { 
-      list-style: none; padding: 0; margin: 0; 
-      flex: 1; 
-      overflow-y: auto; 
-      min-height: 0; 
-      background: #fff; 
-      -webkit-overflow-scrolling: touch; 
-    }
-
-    li { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; gap: 12px; }
-    .item-info { flex: 1; }
-    .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; }
-
-    /* MODALE */
-    .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
-    .modal-content { background: white; padding: 20px; border-radius: 20px; width: 80%; }
-  </style>
+        /* MODALES */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; box-sizing: border-box; }
+        .qty-control { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #eee; border-radius: 10px; padding: 5px; }
+        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        select { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; width: 100%; background: white; margin-bottom: 10px; }
+    </style>
 </head>
 <body>
 
-  <div id="page-accueil" class="page active">
-    <h1>Mon Épicerie</h1>
-    <img src="intro.png" class="img-intro" alt="Intro">
-    <button class="btn-start" onclick="nav('page-magasins')">Commencer</button>
-  </div>
-
-  <div id="page-magasins" class="page">
-    <div class="header-magasins">
-      <h2>Mes Listes</h2>
-
-      <!-- BOUTON LOGOUT ANIMÉ -->
-      <button class="logoutButton">
-        <svg class="doorway" viewBox="0 0 100 100">
-          <path d="M93.4 86.3H58.6c-1.9 0-3.4-1.5-3.4-3.4V17.1c0-1.9 1.5-3.4 3.4-3.4h34.8c1.9 0 3.4 1.5 3.4 3.4v65.8c0 1.9-1.5 3.4-3.4 3.4z" />
-          <path class="bang" d="M40.5 43.7L26.6 31.4l-2.5 6.7zM41.9 50.4l-19.5-4-1.4 6.3zM40 57.4l-17.7 3.9 3.9 5.7z" />
-        </svg>
-        <svg class="figure" viewBox="0 0 100 100">
-          <circle cx="52.1" cy="32.4" r="6.4" />
-          <path d="M50.7 62.8c-1.2 2.5-3.6 5-7.2 4-3.2-.9-4.9-3.5-4-7.8.7-3.4 3.1-13.8 4.1-15.8 1.7-3.4 1.6-4.6 7-3.7 4.3.7 4.6 2.5 4.3 5.4-.4 3.7-2.8 15.1-4.2 17.9z" />
-          <g class="arm1">
-            <path d="M55.5 56.5l-6-9.5c-1-1.5-.6-3.5.9-4.4 1.5-1 3.7-1.1 4.6.4l6.1 10c1 1.5.3 3.5-1.1 4.4-1.5.9-3.5.5-4.5-.9z" />
-            <path class="wrist1" d="M69.4 59.9L58.1 58c-1.7-.3-2.9-1.9-2.6-3.7.3-1.7 1.9-2.9 3.7-2.6l11.4 1.9c1.7.3 2.9 1.9 2.6 3.7-.4 1.7-2 2.9-3.8 2.6z" />
-          </g>
-          <g class="arm2">
-            <path d="M34.2 43.6L45 40.3c1.7-.6 3.5.3 4 2 .6 1.7-.3 4-2 4.5l-10.8 2.8c-1.7.6-3.5-.3-4-2-.6-1.6.3-3.4 2-4z" />
-            <path class="wrist2" d="M27.1 56.2L32 45.7c.7-1.6 2.6-2.3 4.2-1.6 1.6.7 2.3 2.6 1.6 4.2L33 58.8c-.7 1.6-2.6 2.3-4.2 1.6-1.7-.7-2.4-2.6-1.7-4.2z" />
-          </g>
-          <g class="leg1">
-            <path d="M52.1 73.2s-7-5.7-7.9-6.5c-.9-.9-1.2-3.5-.1-4.9 1.1-1.4 3.8-1.9 5.2-.9l7.9 7c1.4 1.1 1.7 3.5.7 4.9-1.1 1.4-4.4 1.5-5.8.4z" />
-            <path class="calf1" d="M52.6 84.4l-1-12.8c-.1-1.9 1.5-3.6 3.5-3.7 2-.1 3.7 1.4 3.8 3.4l1 12.8c.1 1.9-1.5 3.6-3.5 3.7-2 0-3.7-1.5-3.8-3.4z" />
-          </g>
-          <g class="leg2">
-            <path d="M37.8 72.7s1.3-10.2 1.6-11.4 2.4-2.8 4.1-2.6c1.7.2 3.6 2.3 3.4 4l-1.8 11.1c-.2 1.7-1.7 3.3-3.4 3.1-1.8-.2-4.1-2.4-3.9-4.2z" />
-            <path class="calf2" d="M29.5 82.3l9.6-10.9c1.3-1.4 3.6-1.5 5.1-.1 1.5 1.4.4 4.9-.9 6.3l-8.5 9.6c-1.3 1.4-3.6 1.5-5.1.1-1.4-1.3-1.5-3.5-.2-5z" />
-          </g>
-        </svg>
-        <svg class="door" viewBox="0 0 100 100">
-          <path d="M93.4 86.3H58.6c-1.9 0-3.4-1.5-3.4-3.4V17.1c0-1.9 1.5-3.4 3.4-3.4h34.8c1.9 0 3.4 1.5 3.4 3.4v65.8c0 1.9-1.5 3.4-3.4 3.4z" />
-          <circle cx="66" cy="50" r="3.7" />
-        </svg>
-        <span class="button-text">Exit</span>
-      </button>
+    <!-- ACCUEIL -->
+    <div id="page-accueil" class="page active">
+        <h1>Mon Épicerie</h1>
+        <img src="intro.png" class="img-intro">
+        <button class="btn-start" onclick="nav('page-magasins')">Commencer</button>
     </div>
-    <div class="grid-magasins" id="grille"></div>
-  </div>
 
-  <div id="page-liste" class="page">
-    <div class="header-liste">
-      <button class="btn-back" onclick="nav('page-magasins')">←</button>
-      <img id="logo-actuel" class="logo-header-actuel" src="" alt="Logo">
-      <h3 id="titre-magasin" class="titre-header-actuel"></h3>
+    <!-- MAGASINS / LISTES -->
+    <div id="page-magasins" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-inventaire')">Inventaire</button>
+            <h2>Mes Listes</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="grid-magasins" id="grille"></div>
     </div>
-    <div class="input-area">
-      <div class="input-row">
-        <input type="text" id="itemInput" placeholder="Article...">
-        <button class="btn-add" onclick="addItem()">+</button>
-      </div>
-      <div class="input-row">
-        <input type="number" id="itemPrice" placeholder="0.00 $">
-        <input type="number" id="itemQty" value="1" style="width:60px">
-      </div>
-    </div>
-    <div class="total-banner">
-      <div>TOTAL <span id="itemsRemaining" style="font-size: 0.7em; color: #27ae60;"></span></div>
-      <div id="displayTotal">0.00 $</div>
-    </div>
-    <ul id="itemList"></ul>
-    <button class="btn-clear" onclick="clearList()">Vider la liste</button>
-  </div>
 
-  <div id="editModal" class="modal">
-    <div class="modal-content">
-      <h3 id="modalTitle">Modifier</h3>
-      <input type="number" id="editPrice" step="0.01" style="width:100%; margin-bottom:10px">
-      <input type="number" id="editQty" style="width:100%; margin-bottom:10px">
-      <label><input type="checkbox" id="editTaxable"> Taxes</label>
-      <div style="display:flex; gap:10px; margin-top:15px">
-        <button onclick="closeModal()" style="flex:1; padding:10px">Annuler</button>
-        <button onclick="saveEdit()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:5px">OK</button>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const magasins = [
-      {id: "IGA", name: "IGA", logo: "iga.png", scale: 1.4},
-      {id: "Metro", name: "Metro", logo: "metro.png", scale: 0.7},
-      {id: "Maxi", name: "Maxi", logo: "maxi.png", scale: 0.8},
-      {id: "SuperC", name: "Super C", logo: "superc.png", scale: 0.7},
-      {id: "Tigre", name: "Tigre Géant", logo: "tigre.png", scale: 0.8},
-      {id: "Walmart", name: "Walmart", logo: "walmart.png", scale: 0.8},
-      {id: "Costco", name: "Costco", logo: "costco.png", scale: 0.7},
-      {id: "Dollo", name: "Dollorama", logo: "dollo.png", scale: 0.9},
-      {id: "Uniprix", name: "Uniprix", logo: "uniprix.png", scale: 0.9},
-      {id: "JeanCoutu", name: "Jean Coutu", logo: "jeancoutu.png", scale: 1.0},
-      {id: "Brunet", name: "Brunet", logo: "brunet.png", scale: 0.8},
-      {id: "Pharmaprix", name: "Pharmaprix", logo: "pharmaprix.png", scale: 0.9},
-      {id: "Proxim", name: "Proxim", logo: "proxim.png", scale: 0.8},
-      {id: "Familiprix", name: "Familiprix", logo: "familiprix.png", scale: 0.9}
-    ];
-
-    let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
-    let magActuel = "";
-    let currentEditIdx = null;
-
-    const grille = document.getElementById('grille');
-    magasins.forEach(m => {
-      const scaleFactor = m.scale || 1.0;
-      grille.innerHTML += `
-        <div class="magasin-card" onclick="ouvrirMagasin('${m.id}', '${m.logo}', '${m.name}')">
-          <div class="logo-container">
-            <img src="${m.logo}" class="magasin-logo" style="transform: scale(${scaleFactor});">
-          </div>
-          <p class="magasin-name">${m.name}</p>
-          <div id="check-${m.id}" class="badge-check">✓</div>
-          <div id="count-${m.id}" class="badge-count">0</div>
-        </div>`;
-    });
-
-    function nav(id) {
-      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-      const targetPage = document.getElementById(id);
-      if(targetPage) targetPage.classList.add('active');
-      if(id === 'page-magasins') majBadges();
-    }
-
-    function ouvrirMagasin(id, logo, name) {
-      magActuel = id;
-      document.getElementById('titre-magasin').innerText = name;
-      document.getElementById('logo-actuel').src = logo;
-      afficherItems();
-      nav('page-liste');
-    }
-
-    function addItem() {
-      const inp = document.getElementById('itemInput'), pri = document.getElementById('itemPrice'), qty = document.getElementById('itemQty');
-      if(!inp.value.trim()) return;
-      if(!db[magActuel]) db[magActuel] = [];
-      db[magActuel].push({ t: inp.value, p: parseFloat(pri.value) || 0, q: parseInt(qty.value) || 1, c: false, tx: false });
-      inp.value = ""; pri.value = ""; qty.value = "1";
-      save(); afficherItems();
-    }
-
-    function afficherItems() {
-      const ul = document.getElementById('itemList'), totalDisplay = document.getElementById('displayTotal'), remainingDisplay = document.getElementById('itemsRemaining');
-      ul.innerHTML = "";
-      let totalGeneral = 0, itemsToFind = 0;
-
-      if(db[magActuel]) {
-        db[magActuel].forEach((it, idx) => {
-          const li = document.createElement('li');
-          const sousTotal = it.p * it.q;
-          const prixFinal = it.tx ? sousTotal * 1.14975 : sousTotal;
-          totalGeneral += prixFinal;
-          if(!it.c) itemsToFind++;
-
-          li.innerHTML = `
-            <input type="checkbox" ${it.c ? 'checked' : ''} onchange="toggleCheck(${idx})">
-            <div class="item-info" onclick="openModal(${idx})" style="${it.c ? 'text-decoration:line-through; color:#ccc;' : ''}">
-              <div style="font-weight:bold">${it.t}</div>
-              <div style="font-size:0.8em; color:#888">${it.q} x ${it.p.toFixed(2)}$ ${it.tx?'(+tax)':''}</div>
+    <!-- DETAIL LISTE MAGASIN -->
+    <div id="page-liste" class="page">
+        <div class="header-liste">
+            <button class="btn-back" onclick="nav('page-magasins')">←</button>
+            <img id="logo-actuel" class="logo-header-actuel" src="">
+            <h3 id="titre-magasin" class="titre-header-actuel"></h3>
+        </div>
+        <div class="input-area">
+            <div class="input-row">
+                <input type="text" id="itemInput" placeholder="Article...">
+                <button class="btn-add" onclick="addItem()">+</button>
             </div>
-            <span onclick="del(${idx})" style="color:#e74c3c; padding:10px">✕</span>`;
-          ul.appendChild(li);
+            <div class="input-row">
+                <input type="number" id="itemPrice" placeholder="0.00 $">
+                <input type="number" id="itemQty" value="1" style="width:60px">
+            </div>
+        </div>
+        <div class="total-banner">
+            <div>TOTAL <span id="itemsRemaining" style="font-size: 0.7em; color: #27ae60;"></span></div>
+            <div id="displayTotal">0.00 $</div>
+        </div>
+        <ul id="itemList"></ul>
+        <button class="btn-clear" onclick="clearList()">Vider la liste</button>
+    </div>
+
+    <!-- PAGE INVENTAIRE -->
+    <div id="page-inventaire" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
+            <h2 id="inv-title">Inventaire</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="inv-content">
+            <ul id="invList" class="inv-list"></ul>
+        </div>
+        <button class="btn-fab" onclick="openInvModal()">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item active-nav" onclick="setInvTab('cannages', this)"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="setInvTab('pates', this)"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="setInvTab('collations', this)"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="setInvTab('boites', this)"><span>📦</span>Boîtes</button>
+        </div>
+    </div>
+
+    <!-- MODALE EDITION ARTICLE MAGASIN -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-top:0">Modifier</h3>
+            <input type="number" id="editPrice" step="0.01" placeholder="Prix" style="margin-bottom:10px">
+            <input type="number" id="editQty" placeholder="Quantité" style="margin-bottom:10px">
+            <label><input type="checkbox" id="editTaxable"> Taxes</label>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button onclick="saveEdit()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE AJOUT/EDITION INVENTAIRE -->
+    <div id="invModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
+            <label style="font-size:0.85em; color:#666">Catégorie</label>
+            <select id="invCatSelect">
+                <option value="cannages">Cannages</option>
+                <option value="pates">Pâtes</option>
+                <option value="collations">Collations</option>
+                <option value="boites">Boîtes</option>
+            </select>
+            <label style="font-size:0.85em; color:#666">Produit</label>
+            <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
+            <label style="font-size:0.85em; color:#666">Quantité</label>
+            <div class="qty-control">
+                <button class="qty-btn" onclick="adjustModalQty(-1)">-</button>
+                <span id="invModalQty" style="font-size: 1.2em; font-weight: bold;">1</span>
+                <button class="qty-btn" onclick="adjustModalQty(1)">+</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button onclick="closeInvModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button onclick="saveInvItem()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const magasins = [
+            {id: "IGA", name: "IGA", logo: "iga.png", scale: 1.4},
+            {id: "Metro", name: "Metro", logo: "metro.png", scale: 0.7},
+            {id: "Maxi", name: "Maxi", logo: "maxi.png", scale: 0.8},
+            {id: "SuperC", name: "Super C", logo: "superc.png", scale: 0.7},
+            {id: "Tigre", name: "Tigre Géant", logo: "tigre.png", scale: 0.8},
+            {id: "Walmart", name: "Walmart", logo: "walmart.png", scale: 0.8},
+            {id: "Costco", name: "Costco", logo: "costco.png", scale: 0.7},
+            {id: "Dollo", name: "Dollorama", logo: "dollo.png", scale: 0.9},
+            {id: "Uniprix", name: "Uniprix", logo: "uniprix.png", scale: 0.9},
+            {id: "JeanCoutu", name: "Jean Coutu", logo: "jeancoutu.png", scale: 1.0},
+            {id: "Brunet", name: "Brunet", logo: "brunet.png", scale: 0.8},
+            {id: "Pharmaprix", name: "Pharmaprix", logo: "pharmaprix.png", scale: 0.9},
+            {id: "Proxim", name: "Proxim", logo: "proxim.png", scale: 0.8},
+            {id: "Familiprix", name: "Familiprix", logo: "familiprix.png", scale: 0.9}
+        ];
+
+        let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
+        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || { cannages: [], pates: [], collations: [], boites: [] };
+        let magActuel = "";
+        let currentEditIdx = null;
+        let invTabActuel = "cannages";
+        let modalQtyVal = 1;
+
+        const grille = document.getElementById('grille');
+        magasins.forEach(m => {
+            grille.innerHTML += `
+                <div class="magasin-card" onclick="ouvrirMagasin('${m.id}', '${m.logo}', '${m.name}')">
+                    <div class="logo-container"><img src="${m.logo}" class="magasin-logo" style="transform: scale(${m.scale || 1});"></div>
+                    <p class="magasin-name">${m.name}</p>
+                    <div id="check-${m.id}" class="badge-check">✓</div>
+                    <div id="count-${m.id}" class="badge-count">0</div>
+                </div>`;
         });
-      }
-      totalDisplay.innerText = totalGeneral.toFixed(2) + " $";
-      remainingDisplay.innerText = "(" + itemsToFind + " restants)";
-    }
 
-    function toggleCheck(idx) { db[magActuel][idx].c = !db[magActuel][idx].c; save(); afficherItems(); }
-    function del(idx) { db[magActuel].splice(idx, 1); save(); afficherItems(); }
-    function clearList() { if(confirm("Vider la liste ?")) { db[magActuel] = []; save(); afficherItems(); } }
-    function save() { localStorage.setItem('monEpicerieDB', JSON.stringify(db)); }
-    
-    function openModal(idx) {
-      currentEditIdx = idx;
-      const it = db[magActuel][idx];
-      document.getElementById('modalTitle').innerText = it.t;
-      document.getElementById('editPrice').value = it.p;
-      document.getElementById('editQty').value = it.q;
-      document.getElementById('editTaxable').checked = it.tx;
-      document.getElementById('editModal').style.display = 'flex';
-    }
-    function closeModal() { document.getElementById('editModal').style.display = 'none'; }
-    function saveEdit() {
-      db[magActuel][currentEditIdx].p = parseFloat(document.getElementById('editPrice').value) || 0;
-      db[magActuel][currentEditIdx].q = parseInt(document.getElementById('editQty').value) || 1;
-      db[magActuel][currentEditIdx].tx = document.getElementById('editTaxable').checked;
-      save(); afficherItems(); closeModal();
-    }
-
-    function majBadges() {
-      magasins.forEach(m => {
-        const n = db[m.id] ? db[m.id].length : 0;
-        const bC = document.getElementById('count-'+m.id), bK = document.getElementById('check-'+m.id);
-        if(bC) { bC.innerText = n; bC.style.visibility = n > 0 ? 'visible' : 'hidden'; }
-        if(bK) bK.style.visibility = n > 0 ? 'visible' : 'hidden';
-      });
-    }
-
-    // LOGIQUE D'ANIMATION DU BOUTON
-    const logoutButtonStates = {
-      'default': {
-        '--figure-duration': '100',
-        '--transform-figure': 'none',
-        '--walking-duration': '100',
-        '--transform-arm1': 'none',
-        '--transform-wrist1': 'none',
-        '--transform-arm2': 'none',
-        '--transform-wrist2': 'none',
-        '--transform-leg1': 'none',
-        '--transform-calf1': 'none',
-        '--transform-leg2': 'none',
-        '--transform-calf2': 'none'
-      },
-      'hover': {
-        '--figure-duration': '100',
-        '--transform-figure': 'translateX(1.5px)',
-        '--walking-duration': '100',
-        '--transform-arm1': 'rotate(-5deg)',
-        '--transform-wrist1': 'rotate(-15deg)',
-        '--transform-arm2': 'rotate(5deg)',
-        '--transform-wrist2': 'rotate(6deg)',
-        '--transform-leg1': 'rotate(-10deg)',
-        '--transform-calf1': 'rotate(5deg)',
-        '--transform-leg2': 'rotate(20deg)',
-        '--transform-calf2': 'rotate(-20deg)'
-      },
-      'walking1': {
-        '--figure-duration': '300',
-        '--transform-figure': 'translateX(11px)',
-        '--walking-duration': '300',
-        '--transform-arm1': 'translateX(-4px) translateY(-2px) rotate(120deg)',
-        '--transform-wrist1': 'rotate(-5deg)',
-        '--transform-arm2': 'translateX(4px) rotate(-110deg)',
-        '--transform-wrist2': 'rotate(-5deg)',
-        '--transform-leg1': 'translateX(-3px) rotate(80deg)',
-        '--transform-calf1': 'rotate(-30deg)',
-        '--transform-leg2': 'translateX(4px) rotate(-60deg)',
-        '--transform-calf2': 'rotate(20deg)'
-      },
-      'walking2': {
-        '--figure-duration': '400',
-        '--transform-figure': 'translateX(17px)',
-        '--walking-duration': '300',
-        '--transform-arm1': 'rotate(60deg)',
-        '--transform-wrist1': 'rotate(-15deg)',
-        '--transform-arm2': 'rotate(-45deg)',
-        '--transform-wrist2': 'rotate(6deg)',
-        '--transform-leg1': 'rotate(-5deg)',
-        '--transform-calf1': 'rotate(10deg)',
-        '--transform-leg2': 'rotate(10deg)',
-        '--transform-calf2': 'rotate(-20deg)'
-      },
-      'falling1': {
-        '--figure-duration': '1600',
-        '--walking-duration': '400',
-        '--transform-arm1': 'rotate(-60deg)',
-        '--transform-wrist1': 'none',
-        '--transform-arm2': 'rotate(30deg)',
-        '--transform-wrist2': 'rotate(120deg)',
-        '--transform-leg1': 'rotate(-30deg)',
-        '--transform-calf1': 'rotate(-20deg)',
-        '--transform-leg2': 'rotate(20deg)'
-      },
-      'falling2': {
-        '--walking-duration': '300',
-        '--transform-arm1': 'rotate(-100deg)',
-        '--transform-arm2': 'rotate(-60deg)',
-        '--transform-wrist2': 'rotate(60deg)',
-        '--transform-leg1': 'rotate(80deg)',
-        '--transform-calf1': 'rotate(20deg)',
-        '--transform-leg2': 'rotate(-60deg)'
-      },
-      'falling3': {
-        '--walking-duration': '500',
-        '--transform-arm1': 'rotate(-30deg)',
-        '--transform-wrist1': 'rotate(40deg)',
-        '--transform-arm2': 'rotate(50deg)',
-        '--transform-wrist2': 'none',
-        '--transform-leg1': 'rotate(-30deg)',
-        '--transform-leg2': 'rotate(20deg)',
-        '--transform-calf2': 'none'
-      }
-    };
-
-    const button = document.querySelector('.logoutButton');
-    button.state = 'default';
-
-    let updateButtonState = (btn, state) => {
-      if (logoutButtonStates[state]) {
-        btn.state = state;
-        for (let key in logoutButtonStates[state]) {
-          btn.style.setProperty(key, logoutButtonStates[state][key]);
+        function nav(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const targetPage = document.getElementById(id);
+            if(targetPage) targetPage.classList.add('active');
+            if(id === 'page-magasins') majBadges();
+            if(id === 'page-inventaire') afficherInventaire();
         }
-      }
-    };
 
-    button.addEventListener('mouseenter', () => {
-      if (button.state === 'default') {
-        updateButtonState(button, 'hover');
-      }
-    });
+        function ouvrirMagasin(id, logo, name) {
+            magActuel = id;
+            document.getElementById('titre-magasin').innerText = name;
+            document.getElementById('logo-actuel').src = logo;
+            afficherItems();
+            nav('page-liste');
+        }
 
-    button.addEventListener('mouseleave', () => {
-      if (button.state === 'hover') {
-        updateButtonState(button, 'default');
-      }
-    });
+        function addItem() {
+            const inp = document.getElementById('itemInput'), pri = document.getElementById('itemPrice'), qty = document.getElementById('itemQty');
+            if(!inp.value.trim()) return;
+            if(!db[magActuel]) db[magActuel] = [];
+            db[magActuel].push({ t: inp.value, p: parseFloat(pri.value) || 0, q: parseInt(qty.value) || 1, c: false, tx: false });
+            inp.value = ""; pri.value = ""; qty.value = "1";
+            save(); afficherItems();
+        }
 
-    button.addEventListener('click', () => {
-      if (button.state === 'default' || button.state === 'hover') {
-        button.classList.add('clicked');
-        updateButtonState(button, 'walking1');
+        function afficherItems() {
+            const ul = document.getElementById('itemList'), totalDisplay = document.getElementById('displayTotal'), remainingDisplay = document.getElementById('itemsRemaining');
+            ul.innerHTML = "";
+            let totalGeneral = 0, itemsToFind = 0;
 
-        setTimeout(() => {
-          button.classList.add('door-slammed');
-          updateButtonState(button, 'walking2');
+            if(db[magActuel]) {
+                db[magActuel].forEach((it, idx) => {
+                    const sousTotal = it.p * it.q;
+                    const prixFinal = it.tx ? sousTotal * 1.14975 : sousTotal;
+                    totalGeneral += prixFinal;
+                    if(!it.c) itemsToFind++;
 
-          setTimeout(() => {
-            button.classList.add('falling');
-            updateButtonState(button, 'falling1');
+                    ul.innerHTML += `
+                        <li>
+                            <input type="checkbox" ${it.c ? 'checked' : ''} onchange="toggleCheck(${idx})">
+                            <div class="item-info" onclick="openModal(${idx})" style="${it.c ? 'text-decoration:line-through; color:#ccc;' : ''}">
+                                <div style="font-weight:bold">${it.t}</div>
+                                <div style="font-size:0.8em; color:#888">${it.q} x ${it.p.toFixed(2)}$ ${it.tx?'(+tax)':''}</div>
+                            </div>
+                            <span onclick="del(${idx})" style="color:#e74c3c; padding:10px; cursor:pointer;">✕</span>
+                        </li>`;
+                });
+            }
+            totalDisplay.innerText = totalGeneral.toFixed(2) + " $";
+            remainingDisplay.innerText = "(" + itemsToFind + " restants)";
+        }
 
-            setTimeout(() => {
-              updateButtonState(button, 'falling2');
+        function toggleCheck(idx) { db[magActuel][idx].c = !db[magActuel][idx].c; save(); afficherItems(); }
+        function del(idx) { db[magActuel].splice(idx, 1); save(); afficherItems(); }
+        function clearList() { if(confirm("Vider la liste ?")) { db[magActuel] = []; save(); afficherItems(); } }
+        
+        function openModal(idx) {
+            currentEditIdx = idx;
+            const it = db[magActuel][idx];
+            document.getElementById('modalTitle').innerText = it.t;
+            document.getElementById('editPrice').value = it.p;
+            document.getElementById('editQty').value = it.q;
+            document.getElementById('editTaxable').checked = it.tx;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+        function saveEdit() {
+            db[magActuel][currentEditIdx].p = parseFloat(document.getElementById('editPrice').value) || 0;
+            db[magActuel][currentEditIdx].q = parseInt(document.getElementById('editQty').value) || 1;
+            db[magActuel][currentEditIdx].tx = document.getElementById('editTaxable').checked;
+            save(); afficherItems(); closeModal();
+        }
 
-              setTimeout(() => {
-                updateButtonState(button, 'falling3');
+        /* GESTION INVENTAIRE */
+        function setInvTab(tab, el) {
+            invTabActuel = tab;
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active-nav'));
+            el.classList.add('active-nav');
+            const titles = {cannages: "Cannages", pates: "Pâtes", collations: "Collations", boites: "Boîtes"};
+            document.getElementById('inv-title').innerText = titles[tab];
+            afficherInventaire();
+        }
 
-                setTimeout(() => {
-                  const endScreen = document.createElement('div');
-                  endScreen.style.cssText = `
-                    position: fixed !important;
-                    top: 0 !important;
-                    left: 0 !important;
-                    width: 100vw !important;
-                    height: 100vh !important;
-                    background-color: #121212 !important;
-                    color: #ffffff !important;
-                    display: flex !important;
-                    flex-direction: column !important;
-                    align-items: center !important;
-                    justify-content: center !important;
-                    text-align: center !important;
-                    padding: 20px !important;
-                    box-sizing: border-box !important;
-                    z-index: 999999 !important;
-                    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif !important;
-                  `;
+        function openInvModal() {
+            modalQtyVal = 1;
+            document.getElementById('invModalQty').innerText = modalQtyVal;
+            document.getElementById('invNameInput').value = "";
+            document.getElementById('invCatSelect').value = invTabActuel;
+            document.getElementById('invModal').style.display = 'flex';
+        }
+        function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
+        
+        function adjustModalQty(val) {
+            modalQtyVal = Math.max(1, modalQtyVal + val);
+            document.getElementById('invModalQty').innerText = modalQtyVal;
+        }
 
-                 endScreen.innerHTML = `
-                   <img src="epicerie.png" alt="Icone App" style="width: 80px; height: 80px; border-radius: 18px; margin-bottom: 20px; box-shadow: 0 8px 16px rgba(0,0,0,0.4);">
-                   <h2 style="margin: 0 0 12px 0; font-size: 22px; font-weight: 600; color: #ffffff;">
-                    Merci d'avoir utilisé l'application !
-                   </h2>
-                   <p style="margin: 0; font-size: 16px; color: #a0a0a0; line-height: 1.4;">
-                    Allez, pousse-moi vers le haut 👆
-                   </p>
-                  `;
+        function saveInvItem() {
+            const name = document.getElementById('invNameInput').value.trim();
+            const cat = document.getElementById('invCatSelect').value;
+            if(!name) return;
+            if(!invDb[cat]) invDb[cat] = [];
+            invDb[cat].push({ name: name, qty: modalQtyVal });
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            closeInvModal();
+            afficherInventaire();
+        }
 
-                  document.body.appendChild(endScreen);
+        function updateInvQty(cat, idx, change) {
+            invDb[cat][idx].qty = Math.max(0, invDb[cat][idx].qty + change);
+            if(invDb[cat][idx].qty === 0) {
+                invDb[cat].splice(idx, 1);
+            }
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            afficherInventaire();
+        }
 
-                }, 1000);
-              }, 400);
-            }, 400);
-          }, 400);
-        }, 400);
-      }
-    });
+        function afficherInventaire() {
+            const ul = document.getElementById('invList');
+            ul.innerHTML = "";
+            const items = invDb[invTabActuel] || [];
+            
+            if(items.length === 0) {
+                ul.innerHTML = `<li style="justify-content:center; color:#999; padding:30px;">Aucun article dans cette section</li>`;
+                return;
+            }
 
-    window.onload = majBadges;
-  </script>
+            items.forEach((item, idx) => {
+                ul.innerHTML += `
+                    <li>
+                        <div class="item-info">
+                            <div style="font-weight:bold">${item.name}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
+                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                            <button class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
+                        </div>
+                    </li>`;
+            });
+        }
+
+        function majBadges() {
+            magasins.forEach(m => {
+                const n = db[m.id] ? db[m.id].length : 0;
+                const bC = document.getElementById('count-'+m.id), bK = document.getElementById('check-'+m.id);
+                if(bC) { bC.innerText = n; bC.style.visibility = n > 0 ? 'visible' : 'hidden'; }
+                if(bK) bK.style.visibility = n > 0 ? 'visible' : 'hidden';
+            });
+        }
+
+        function save() { localStorage.setItem('monEpicerieDB', JSON.stringify(db)); }
+        window.onload = majBadges;
+    </script>
 </body>
 </html>
