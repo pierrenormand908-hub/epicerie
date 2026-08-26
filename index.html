@@ -19,11 +19,12 @@
         .img-intro { width: 80%; max-width: 250px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         .btn-start { background: var(--primary); color: white; padding: 18px 50px; border: none; border-radius: 35px; font-size: 1.3em; font-weight: bold; cursor: pointer; }
 
-        /* HEADERS MAGASINS & INVENTAIRE */
+        /* HEADERS */
         .header-top { display: flex; justify-content: space-between; align-items: center; padding: 40px 15px 15px 15px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
         .header-top h2 { margin: 0; font-size: 1.4em; }
         .btn-header { background: #eee; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
 
+        /* MAGASINS */
         .grid-magasins { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; flex: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: 40px; }
         .magasin-card { background: white; padding: 15px; border-radius: 18px; position: relative; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); height: fit-content; cursor: pointer; }
         .logo-container { width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
@@ -33,7 +34,7 @@
         .badge-check { left: 12px; background: var(--primary); }
         .badge-count { right: 12px; background: var(--danger); }
 
-        /* LISTE PAGE */
+        /* LISTE MAGASIN */
         .header-liste { padding: 40px 15px 12px 15px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #ddd; flex-shrink: 0; }
         .btn-back { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); border: none; background: #eee; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
         .logo-header-actuel { width: 75px; height: 75px; object-fit: contain; }
@@ -51,7 +52,7 @@
         .item-info { flex: 1; }
         .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
-        /* INVENTAIRE & CARTES SWIPE */
+        /* INVENTAIRES & NAVIGATION BASSE FIXE */
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
         
         .inv-card-container { position: relative; margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: var(--danger); }
@@ -60,7 +61,7 @@
         .inv-card-info { flex: 1; }
         .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
         
-        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; overflow-x: auto; }
+        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
         .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #777; cursor: pointer; gap: 3px; min-width: 60px; flex-shrink: 0; }
         .nav-item span { font-size: 1.4em; }
         .nav-item.active-nav { color: var(--primary); font-weight: bold; }
@@ -88,7 +89,7 @@
     <!-- MAGASINS / LISTES -->
     <div id="page-magasins" class="page">
         <div class="header-top">
-            <button class="btn-header" onclick="nav('page-inventaire')">Inventaire</button>
+            <button class="btn-header" onclick="nav('page-inventaire-cannages')">Inventaire</button>
             <h2>Mes Listes</h2>
             <div style="width: 70px;"></div>
         </div>
@@ -120,16 +121,72 @@
         <button class="btn-clear" onclick="clearList()">Vider la liste</button>
     </div>
 
-    <!-- PAGE INVENTAIRE -->
-    <div id="page-inventaire" class="page">
+    <!-- 1. INVENTAIRE : CANNAGES -->
+    <div id="page-inventaire-cannages" class="page">
         <div class="header-top">
             <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
-            <h2 id="invHeaderTitle">Cannages</h2>
+            <h2>Cannages</h2>
             <div style="width: 70px;"></div>
         </div>
-        <div class="inv-content" id="invContainer"></div>
-        <button class="btn-fab" onclick="openInvModal()">+</button>
-        <div class="navbar-bottom" id="invNavBar"></div>
+        <div class="inv-content" id="container-Cannages"></div>
+        <button class="btn-fab" onclick="openInvModal('Cannages')">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item active-nav" onclick="nav('page-inventaire-cannages')"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="nav('page-inventaire-pates')"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="nav('page-inventaire-collations')"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="nav('page-inventaire-boites')"><span>📦</span>Boîtes</button>
+        </div>
+    </div>
+
+    <!-- 2. INVENTAIRE : PÂTES -->
+    <div id="page-inventaire-pates" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
+            <h2>Pâtes</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="inv-content" id="container-Pâtes"></div>
+        <button class="btn-fab" onclick="openInvModal('Pâtes')">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item" onclick="nav('page-inventaire-cannages')"><span>🥫</span>Cannages</button>
+            <button class="nav-item active-nav" onclick="nav('page-inventaire-pates')"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="nav('page-inventaire-collations')"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="nav('page-inventaire-boites')"><span>📦</span>Boîtes</button>
+        </div>
+    </div>
+
+    <!-- 3. INVENTAIRE : COLLATIONS -->
+    <div id="page-inventaire-collations" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
+            <h2>Collations</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="inv-content" id="container-Collations"></div>
+        <button class="btn-fab" onclick="openInvModal('Collations')">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item" onclick="nav('page-inventaire-cannages')"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="nav('page-inventaire-pates')"><span>🍝</span>Pâtes</button>
+            <button class="nav-item active-nav" onclick="nav('page-inventaire-collations')"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="nav('page-inventaire-boites')"><span>📦</span>Boîtes</button>
+        </div>
+    </div>
+
+    <!-- 4. INVENTAIRE : BOÎTES -->
+    <div id="page-inventaire-boites" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
+            <h2>Boîtes</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="inv-content" id="container-Boîtes"></div>
+        <button class="btn-fab" onclick="openInvModal('Boîtes')">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item" onclick="nav('page-inventaire-cannages')"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="nav('page-inventaire-pates')"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="nav('page-inventaire-collations')"><span>🍪</span>Collations</button>
+            <button class="nav-item active-nav" onclick="nav('page-inventaire-boites')"><span>📦</span>Boîtes</button>
+        </div>
     </div>
 
     <!-- MODALE EDITION ARTICLE MAGASIN -->
@@ -149,13 +206,9 @@
     <!-- MODALE AJOUT INVENTAIRE -->
     <div id="invModal" class="modal">
         <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
-            <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <div style="display: flex; gap: 8px; margin-top: 4px; margin-bottom: 10px;">
-                <select id="invCatSelect" style="flex: 1;"></select>
-                <button type="button" onclick="openCatManagerModal()" style="background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 12px; font-weight: bold; cursor: pointer;">⚙️</button>
-            </div>
-
+            <h3 style="margin-top:0" id="invModalTitle">Ajouter à l'inventaire</h3>
+            <input type="hidden" id="invModalCat">
+            
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
             
@@ -172,33 +225,12 @@
         </div>
     </div>
 
-    <!-- MODALE GESTION DES CATEGORIES -->
-    <div id="catManagerModal" class="modal">
-        <div class="modal-content" onclick="event.stopPropagation()">
-            <h3 style="margin-top:0">Gérer les catégories</h3>
-            
-            <label style="font-size:0.85em; color:#666">Ajouter une catégorie</label>
-            <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:15px;">
-                <input type="text" id="newCatNameInput" placeholder="Nom...">
-                <button type="button" onclick="addNewCategory()" style="background:var(--primary); color:white; border:none; border-radius:10px; padding:0 15px; font-weight:bold; cursor:pointer;">Ajouter</button>
-            </div>
-
-            <label style="font-size:0.85em; color:#666">Supprimer une catégorie</label>
-            <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:15px;">
-                <select id="delCatSelect" style="flex:1;"></select>
-                <button type="button" onclick="deleteCategory()" style="background:var(--danger); color:white; border:none; border-radius:10px; padding:0 12px; font-weight:bold; cursor:pointer;">Supprimer</button>
-            </div>
-
-            <button type="button" onclick="closeCatManagerModal()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer; background:white; font-weight:bold;">Fermer</button>
-        </div>
-    </div>
-
     <!-- MODALE EDITION PRODUIT INVENTAIRE -->
     <div id="editInvModal" class="modal">
         <div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-top:0">Modifier le produit</h3>
-            <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <select id="editInvCatSelect" style="margin-top:4px; margin-bottom:10px"></select>
+            <input type="hidden" id="editInvCat">
+            <input type="hidden" id="editInvIdx">
 
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="editInvNameInput" style="margin-top:4px; margin-bottom:12px">
@@ -235,22 +267,18 @@
         ];
 
         let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
-        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || {};
+        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || {
+            "Cannages": [],
+            "Pâtes": [],
+            "Collations": [],
+            "Boîtes": []
+        };
         let magActuel = "";
         let currentEditIdx = null;
-        let invTabActuel = "Cannages";
         let modalQtyVal = 0;
-        
-        let currentEditInvCat = "";
-        let currentEditInvIdx = null;
         let editInvQtyVal = 0;
 
-        let categoriesPersonnalisees = JSON.parse(localStorage.getItem('monCategoriesDB')) || [
-            {name: "Cannages", icon: "🥫"},
-            {name: "Pâtes", icon: "🍝"},
-            {name: "Collations", icon: "🍪"},
-            {name: "Boîtes", icon: "📦"}
-        ];
+        const categoriesFixes = ["Cannages", "Pâtes", "Collations", "Boîtes"];
 
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
@@ -267,10 +295,13 @@
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             const targetPage = document.getElementById(id);
             if(targetPage) targetPage.classList.add('active');
+            
             if(id === 'page-magasins') majBadges();
-            if(id === 'page-inventaire') {
-                construireBarreNavigation();
-                afficherInventaire();
+            if(id.startsWith('page-inventaire-')) {
+                const catName = id.replace('page-inventaire-', '');
+                // Capitalisation propre pour correspondre à la clé
+                const mapCat = { "cannages": "Cannages", "pates": "Pâtes", "collations": "Collations", "boites": "Boîtes" };
+                afficherInventaire(mapCat[catName]);
             }
         }
 
@@ -339,130 +370,17 @@
             save(); afficherItems(); closeModal();
         }
 
-        function obtenirToutesLesCategories() {
-            return categoriesPersonnalisees;
-        }
-
-        function sauvegarderCategories() {
-            localStorage.setItem('monCategoriesDB', JSON.stringify(categoriesPersonnalisees));
-        }
-
-        function construireBarreNavigation() {
-            const navBar = document.getElementById('invNavBar');
-            if(!navBar) return;
-            navBar.innerHTML = "";
-            
-            const cats = obtenirToutesLesCategories();
-            cats.forEach(cat => {
-                const isActive = (cat.name === invTabActuel) ? 'active-nav' : '';
-                navBar.innerHTML += `
-                    <button class="nav-item ${isActive}" onclick="setInvTab('${cat.name}', this)">
-                        <span>${cat.icon}</span>${cat.name}
-                    </button>`;
-            });
-        }
-
-        function setInvTab(tab, el) {
-            invTabActuel = tab;
-            document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
-            if(el) {
-                el.classList.add('active-nav');
-            } else {
-                construireBarreNavigation();
-            }
-            
-            document.getElementById('invHeaderTitle').innerText = tab;
-            afficherInventaire();
-        }
-
-        function remplirSelect(selectId) {
-            const select = document.getElementById(selectId);
-            if(!select) return;
-            select.innerHTML = "";
-            const cats = obtenirToutesLesCategories();
-            cats.forEach(c => {
-                select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
-            });
-        }
-
-        function openInvModal() {
+        // GESTION INVENTAIRE PAR PAGE DIRECTE
+        function openInvModal(cat) {
             modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
-            
-            remplirSelect('invCatSelect');
-            const selectCat = document.getElementById('invCatSelect');
-            if(invTabActuel) selectCat.value = invTabActuel;
-            
+            document.getElementById('invModalCat').value = cat;
+            document.getElementById('invModalTitle').innerText = "Ajouter à " + cat;
             document.getElementById('invModal').style.display = 'flex';
         }
 
         function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
-        
-        function openCatManagerModal() {
-            document.getElementById('newCatNameInput').value = "";
-            remplirSelect('delCatSelect');
-            document.getElementById('catManagerModal').style.display = 'flex';
-        }
-
-        function closeCatManagerModal() {
-            document.getElementById('catManagerModal').style.display = 'none';
-        }
-
-        function addNewCategory() {
-            const name = document.getElementById('newCatNameInput').value.trim();
-            if(!name) return;
-            
-            const allCats = obtenirToutesLesCategories();
-            if(allCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
-                alert("Cette catégorie existe déjà !");
-                return;
-            }
-
-            categoriesPersonnalisees.push({ name: name, icon: "📁" });
-            sauvegarderCategories();
-
-            if(!invDb[name]) {
-                invDb[name] = [];
-                localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
-            }
-
-            document.getElementById('newCatNameInput').value = "";
-            remplirSelect('delCatSelect');
-            remplirSelect('invCatSelect');
-            construireBarreNavigation(); // CORRECTION : Mise à jour immédiate de la barre
-            alert("Catégorie ajoutée !");
-        }
-
-        function deleteCategory() {
-            const select = document.getElementById('delCatSelect');
-            const catToDel = select.value;
-            if(!catToDel) return;
-
-            if(categoriesPersonnalisees.length <= 1) {
-                alert("Vous devez garder au moins une catégorie !");
-                return;
-            }
-
-            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
-                categoriesPersonnalisees = categoriesPersonnalisees.filter(c => c.name !== catToDel);
-                sauvegarderCategories();
-
-                delete invDb[catToDel];
-                localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
-                
-                if(invTabActuel === catToDel) {
-                    const remaining = obtenirToutesLesCategories();
-                    invTabActuel = remaining.length > 0 ? remaining[0].name : "";
-                }
-
-                remplirSelect('delCatSelect');
-                remplirSelect('invCatSelect');
-                construireBarreNavigation(); // CORRECTION : Mise à jour immédiate de la barre après suppression
-                document.getElementById('invHeaderTitle').innerText = invTabActuel;
-                afficherInventaire();
-            }
-        }
 
         function adjustModalQty(val) {
             modalQtyVal = Math.max(0, modalQtyVal + val);
@@ -471,70 +389,67 @@
 
         function saveInvItem() {
             const name = document.getElementById('invNameInput').value.trim();
-            const cat = document.getElementById('invCatSelect').value;
-            
-            if(!name || !cat) return;
+            const cat = document.getElementById('invModalCat').value;
+            if(!name) return;
             
             if(!invDb[cat]) invDb[cat] = [];
             invDb[cat].push({ name: name, qty: modalQtyVal });
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             
             closeInvModal();
-            setInvTab(cat, null);
+            afficherInventaire(cat);
         }
 
         function updateInvQty(cat, idx, change) {
             invDb[cat][idx].qty = Math.max(0, invDb[cat][idx].qty + change);
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
-            afficherInventaire();
+            afficherInventaire(cat);
         }
 
         function deleteInvItem(cat, idx) {
             invDb[cat].splice(idx, 1);
-            if(invDb[cat].length === 0) {
-                delete invDb[cat];
-            }
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
-            afficherInventaire();
+            afficherInventaire(cat);
         }
 
         function openEditInvModal(cat, idx) {
-            currentEditInvCat = cat;
-            currentEditInvIdx = idx;
+            document.getElementById('editInvCat').value = cat;
+            document.getElementById('editInvIdx').value = idx;
             const item = invDb[cat][idx];
             editInvQtyVal = item.qty;
             
-            remplirSelect('editInvCatSelect');
-            document.getElementById('editInvCatSelect').value = cat;
             document.getElementById('editInvNameInput').value = item.name;
             document.getElementById('editInvModalQty').innerText = editInvQtyVal;
             document.getElementById('editInvModal').style.display = 'flex';
         }
+
         function closeEditInvModal() { document.getElementById('editInvModal').style.display = 'none'; }
+
         function adjustEditInvQty(val) {
             editInvQtyVal = Math.max(0, editInvQtyVal + val);
             document.getElementById('editInvModalQty').innerText = editInvQtyVal;
         }
+
         function saveEditInvItem() {
+            const cat = document.getElementById('editInvCat').value;
+            const idx = document.getElementById('editInvIdx').value;
             const newName = document.getElementById('editInvNameInput').value.trim();
-            let newCat = document.getElementById('editInvCatSelect').value;
-            if(!newName || !newCat) return;
+            if(!newName) return;
 
-            invDb[currentEditInvCat].splice(currentEditInvIdx, 1);
-            if(invDb[currentEditInvCat].length === 0 && currentEditInvCat !== newCat) {
-                delete invDb[currentEditInvCat];
-            }
-
-            if(!invDb[newCat]) invDb[newCat] = [];
-            invDb[newCat].push({ name: newName, qty: editInvQtyVal });
+            invDb[cat][idx].name = newName;
+            invDb[cat][idx].qty = editInvQtyVal;
 
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             closeEditInvModal();
-            setInvTab(newCat, null);
+            afficherInventaire(cat);
         }
 
-        function initSwipeEvents() {
-            const cards = document.querySelectorAll('.inv-card');
+        function initSwipeEvents(catName) {
+            const containerId = 'container-' + catName;
+            const container = document.getElementById(containerId);
+            if(!container) return;
+            const cards = container.querySelectorAll('.inv-card');
+            
             cards.forEach(card => {
                 let startX = 0, currentX = 0, isDragging = false;
 
@@ -578,38 +493,38 @@
             });
         }
 
-        function afficherInventaire() {
-            const container = document.getElementById('invContainer');
+        function afficherInventaire(cat) {
+            const container = document.getElementById('container-' + cat);
+            if(!container) return;
             container.innerHTML = "";
             
-            const items = invDb[invTabActuel];
-            
+            const items = invDb[cat];
             if(!items || items.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucun article dans "${invTabActuel}".<br>Appuyez sur + pour en ajouter.</div>`;
+                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucun article dans "${cat}".<br>Appuyez sur + pour en ajouter.</div>`;
                 return;
             }
 
             items.forEach((item, idx) => {
                 container.innerHTML += `
                     <div class="inv-card-container">
-                        <div class="inv-delete-bg" onclick="deleteInvItem('${invTabActuel}', ${idx})">Suppr.</div>
+                        <div class="inv-delete-bg" onclick="deleteInvItem('${cat}', ${idx})">Suppr.</div>
                         <div class="inv-card">
                             <div class="inv-card-info">
                                 <div class="inv-card-title">${item.name}</div>
                             </div>
                             <div class="action-btn-group">
-                                <button class="icon-btn" onclick="openEditInvModal('${invTabActuel}', ${idx})" title="Éditer">✏️</button>
+                                <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
                                 <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
-                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
+                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
                                     <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
+                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
                                 </div>
                             </div>
                         </div>
                     </div>`;
             });
 
-            setTimeout(initSwipeEvents, 50);
+            setTimeout(() => initSwipeEvents(cat), 50);
         }
 
         function majBadges() {
