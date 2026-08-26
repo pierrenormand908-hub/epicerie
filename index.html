@@ -127,9 +127,7 @@
             <h2 id="invHeaderTitle">Cannages</h2>
             <div style="width: 70px;"></div>
         </div>
-        <div class="inv-content" id="invContainer">
-            <!-- Les cartes de la catégorie sélectionnée s'afficheront ici -->
-        </div>
+        <div class="inv-content" id="invContainer"></div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
         <div class="navbar-bottom">
             <button class="nav-item active-nav" onclick="setInvTab('Cannages', this)"><span>🥫</span>Cannages</button>
@@ -200,7 +198,7 @@
         </div>
     </div>
 
-    <!-- MODALE EDITION PRODUIT INVENTAIRE (CRAYON) -->
+    <!-- MODALE EDITION PRODUIT INVENTAIRE -->
     <div id="editInvModal" class="modal">
         <div class="modal-content">
             <h3 style="margin-top:0">Modifier le produit</h3>
@@ -351,10 +349,8 @@
             if(!select) return;
             select.innerHTML = "";
             
-            // Liste fixe des onglets de base par défaut si vides
             let categories = ["Cannages", "Pâtes", "Collations", "Boîtes"];
             
-            // Ajouter les catégories existantes de la base de données si elles y sont
             Object.keys(invDb).forEach(cat => {
                 if(!categories.includes(cat)) {
                     categories.push(cat);
@@ -372,7 +368,9 @@
             document.getElementById('invNameInput').value = "";
             
             remanierSelectCategories('invCatSelect');
-            if(invTabActuel) document.getElementById('invCatSelect').value = invTabActuel;
+            const selectCat = document.getElementById('invCatSelect');
+            if(invTabActuel) selectCat.value = invTabActuel;
+            
             document.getElementById('invModal').style.display = 'flex';
         }
 
@@ -485,76 +483,51 @@
             afficherInventaire();
         }
 
-        /* GESTION DU GLISSER VERS LA GAUCHE (SWIPE) SUR LES CARTES */
         function initSwipeEvents() {
             const cards = document.querySelectorAll('.inv-card');
             cards.forEach(card => {
-                let startX = 0;
-                let currentX = 0;
-                let isDragging = false;
+                let startX = 0, currentX = 0, isDragging = false;
 
                 card.addEventListener('touchstart', (e) => {
                     startX = e.touches[0].clientX;
                     isDragging = true;
                     card.style.transition = 'none';
                 });
-
                 card.addEventListener('touchmove', (e) => {
                     if (!isDragging) return;
                     currentX = e.touches[0].clientX;
                     let diff = currentX - startX;
-                    if (diff < 0) {
-                        card.style.transform = `translateX(${Math.max(diff, -80)}px)`;
-                    } else {
-                        card.style.transform = `translateX(0px)`;
-                    }
+                    card.style.transform = `translateX(${diff < 0 ? Math.max(diff, -80) : 0}px)`;
                 });
-
-                card.addEventListener('touchend', (e) => {
+                card.addEventListener('touchend', () => {
                     if (!isDragging) return;
                     isDragging = false;
                     card.style.transition = 'transform 0.2s ease';
                     let diff = currentX - startX;
-                    if (diff < -50) {
-                        card.style.transform = `translateX(-80px)`;
-                    } else {
-                        card.style.transform = `translateX(0px)`;
-                    }
+                    card.style.transform = diff < -50 ? `translateX(-80px)` : `translateX(0px)`;
                 });
 
-                // Support souris pour test sur desktop
                 card.addEventListener('mousedown', (e) => {
                     startX = e.clientX;
                     isDragging = true;
                     card.style.transition = 'none';
                 });
-
                 window.addEventListener('mousemove', (e) => {
                     if (!isDragging) return;
                     currentX = e.clientX;
                     let diff = currentX - startX;
-                    if (diff < 0) {
-                        card.style.transform = `translateX(${Math.max(diff, -80)}px)`;
-                    } else {
-                        card.style.transform = `translateX(0px)`;
-                    }
+                    card.style.transform = `translateX(${diff < 0 ? Math.max(diff, -80) : 0}px)`;
                 });
-
                 window.addEventListener('mouseup', () => {
                     if (!isDragging) return;
                     isDragging = false;
                     card.style.transition = 'transform 0.2s ease';
                     let diff = currentX - startX;
-                    if (diff < -50) {
-                        card.style.transform = `translateX(-80px)`;
-                    } else {
-                        card.style.transform = `translateX(0px)`;
-                    }
+                    card.style.transform = diff < -50 ? `translateX(-80px)` : `translateX(0px)`;
                 });
             });
         }
 
-        /* AFFICHAGE EXCLUSIF DE LA CATÉGORIE SÉLECTIONNÉE */
         function afficherInventaire() {
             const container = document.getElementById('invContainer');
             container.innerHTML = "";
