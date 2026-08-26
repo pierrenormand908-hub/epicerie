@@ -53,7 +53,6 @@
 
         /* INVENTAIRE & CARTES SWIPE */
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
-        .inv-category-title { font-size: 1.1em; font-weight: bold; color: var(--primary); margin: 15px 0 8px 5px; text-transform: capitalize; }
         
         .inv-card-container { position: relative; margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: var(--danger); }
         .inv-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
@@ -129,7 +128,7 @@
             <div style="width: 70px;"></div>
         </div>
         <div class="inv-content" id="invContainer">
-            <!-- Les catégories et cartes d'inventaire s'afficheront ici -->
+            <!-- Les cartes de la catégorie sélectionnée s'afficheront ici -->
         </div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
         <div class="navbar-bottom">
@@ -337,7 +336,7 @@
             save(); afficherItems(); closeModal();
         }
 
-        /* GESTION INVENTAIRE */
+        /* GESTION INVENTAIRE PAR ONGLETS DE CATÉGORIES */
         function setInvTab(tab, el) {
             invTabActuel = tab;
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
@@ -368,6 +367,7 @@
             document.getElementById('invNameInput').value = "";
             
             remanierSelectCategories('invCatSelect');
+            if(invTabActuel) document.getElementById('invCatSelect').value = invTabActuel;
             document.getElementById('invModal').style.display = 'flex';
         }
 
@@ -498,7 +498,6 @@
                     if (!isDragging) return;
                     currentX = e.touches[0].clientX;
                     let diff = currentX - startX;
-                    // Limiter le glissement vers la gauche (max -80px) et empêcher vers la droite (> 0)
                     if (diff < 0) {
                         card.style.transform = `translateX(${Math.max(diff, -80)}px)`;
                     } else {
@@ -512,13 +511,13 @@
                     card.style.transition = 'transform 0.2s ease';
                     let diff = currentX - startX;
                     if (diff < -50) {
-                        card.style.transform = `translateX(-80px)`; // Reste ouvert sur le bouton supprimer
+                        card.style.transform = `translateX(-80px)`;
                     } else {
                         card.style.transform = `translateX(0px)`;
                     }
                 });
 
-                // Support souris pour test sur PC
+                // Support souris pour test sur desktop
                 card.addEventListener('mousedown', (e) => {
                     startX = e.clientX;
                     isDragging = true;
@@ -550,45 +549,38 @@
             });
         }
 
+        /* AFFICHAGE EXCLUSIF DE LA CATÉGORIE SÉLECTIONNÉE */
         function afficherInventaire() {
             const container = document.getElementById('invContainer');
             container.innerHTML = "";
             
-            const categories = Object.keys(invDb);
+            const items = invDb[invTabActuel];
             
-            if(categories.length === 0) {
-                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucune catégorie ni article. Appuyez sur + pour ajouter.</div>`;
+            if(!items || items.length === 0) {
+                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucun article dans "${invTabActuel}".<br>Appuyez sur + pour en ajouter.</div>`;
                 return;
             }
 
-            categories.forEach(cat => {
-                const items = invDb[cat];
-                if(items && items.length > 0) {
-                    container.innerHTML += `<div class="inv-category-title">${cat}</div>`;
-                    
-                    items.forEach((item, idx) => {
-                        container.innerHTML += `
-                            <div class="inv-card-container">
-                                <div class="inv-delete-bg" onclick="deleteInvItem('${cat}', ${idx})">Suppr.</div>
-                                <div class="inv-card">
-                                    <div class="inv-card-info">
-                                        <div class="inv-card-title">${item.name}</div>
-                                    </div>
-                                    <div class="action-btn-group">
-                                        <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
-                                        <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
-                                            <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
-                                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                                            <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
-                                        </div>
-                                    </div>
+            items.forEach((item, idx) => {
+                container.innerHTML += `
+                    <div class="inv-card-container">
+                        <div class="inv-delete-bg" onclick="deleteInvItem('${invTabActuel}', ${idx})">Suppr.</div>
+                        <div class="inv-card">
+                            <div class="inv-card-info">
+                                <div class="inv-card-title">${item.name}</div>
+                            </div>
+                            <div class="action-btn-group">
+                                <button class="icon-btn" onclick="openEditInvModal('${invTabActuel}', ${idx})" title="Éditer">✏️</button>
+                                <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
+                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
+                                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
                                 </div>
-                            </div>`;
-                    });
-                }
+                            </div>
+                        </div>
+                    </div>`;
             });
 
-            // Activer les interactions tactiles de glissement après affichage
             setTimeout(initSwipeEvents, 50);
         }
 
