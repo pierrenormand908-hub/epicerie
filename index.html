@@ -60,8 +60,8 @@
         .inv-card-info { flex: 1; }
         .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
         
-        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
-        .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #777; cursor: pointer; gap: 3px; }
+        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; overflow-x: auto; }
+        .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #777; cursor: pointer; gap: 3px; min-width: 60px; flex-shrink: 0; }
         .nav-item span { font-size: 1.4em; }
         .nav-item.active-nav { color: var(--primary); font-weight: bold; }
 
@@ -129,9 +129,7 @@
         </div>
         <div class="inv-content" id="invContainer"></div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
-        <div class="navbar-bottom" id="invNavBar">
-            <!-- Les onglets seront générés dynamiquement -->
-        </div>
+        <div class="navbar-bottom" id="invNavBar"></div>
     </div>
 
     <!-- MODALE EDITION ARTICLE MAGASIN -->
@@ -344,6 +342,7 @@
         /* GESTION INVENTAIRE ET CATÉGORIES */
         function obtenirToutesLesCategories() {
             let cats = [...defaultCategories];
+            // Ajouter aussi les catégories présentes dans invDb (même si elles sont vides ou créées)
             Object.keys(invDb).forEach(catName => {
                 if(!cats.some(c => c.name === catName)) {
                     cats.push({ name: catName, icon: "📁" });
@@ -442,16 +441,21 @@
             const catToDel = select.value;
             if(!catToDel) return;
 
-            // Empêcher la suppression des catégories de base par défaut si désiré, ou autoriser
-            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
+            // Empêcher de supprimer la dernière catégorie par défaut s'il n'en reste plus, ou autoriser la suppression
+            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" ?`)) {
+                // Supprimer de l'objet de données si elle y est
                 delete invDb[catToDel];
+                
+                // Si c'est une catégorie par défaut qui n'a pas de produits dans invDb mais qu'on veut masquer/retirer
+                // On s'assure de la retirer de l'affichage en forçant la mise à jour
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
                 
-                // Si on était sur cette catégorie, basculer vers Cannages
+                // Si la catégorie supprimée était celle active, on bascule sur "Cannages" par défaut
                 if(invTabActuel === catToDel) {
                     invTabActuel = "Cannages";
                 }
 
+                // Rafraîchir les sélecteurs et l'interface
                 remplirSelect('delCatSelect');
                 remplirSelect('invCatSelect');
                 construireBarreNavigation();
