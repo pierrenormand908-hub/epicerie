@@ -85,7 +85,7 @@
     <!-- MAGASINS / LISTES -->
     <div id="page-magasins" class="page">
         <div class="header-top">
-            <button class="btn-header" onclick="nav('page-inventaire')">Inventaire</button>
+            <button class="btn-header" onclick="ouvrirInventaireDefaut()">Inventaire</button>
             <h2>Mes Listes</h2>
             <div style="width: 70px;"></div>
         </div>
@@ -121,18 +121,18 @@
     <div id="page-inventaire" class="page">
         <div class="header-top">
             <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
-            <h2 id="invHeaderTitle">cannages</h2>
+            <h2 id="invHeaderTitle">Cannages</h2>
             <div style="width: 70px;"></div>
         </div>
         <div class="inv-content" id="invContainer">
-            <!-- Les cartes d'inventaire de la catégorie active s'afficheront ici -->
+            <!-- Les cartes de la catégorie active s'affichent ici -->
         </div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
         <div class="navbar-bottom">
-            <button class="nav-item active-nav" onclick="setInvTab('cannages', this)"><span>🥫</span>Cannages</button>
-            <button class="nav-item" onclick="setInvTab('pates', this)"><span>🍝</span>Pâtes</button>
-            <button class="nav-item" onclick="setInvTab('collations', this)"><span>🍪</span>Collations</button>
-            <button class="nav-item" onclick="setInvTab('boites', this)"><span>📦</span>Boîtes</button>
+            <button class="nav-item active-nav" onclick="setInvTab('Cannages', this)"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="setInvTab('Pâtes', this)"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="setInvTab('Collations', this)"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="setInvTab('Boîtes', this)"><span>📦</span>Boîtes</button>
         </div>
     </div>
 
@@ -155,12 +155,12 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: cannages, pates..." style="margin-top:4px; margin-bottom:10px">
+            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: Cannages, Pâtes..." style="margin-top:4px; margin-bottom:10px">
             <datalist id="catSuggestions">
-                <option value="cannages">
-                <option value="pates">
-                <option value="collations">
-                <option value="boites">
+                <option value="Cannages">
+                <option value="Pâtes">
+                <option value="Collations">
+                <option value="Boîtes">
             </datalist>
 
             <label style="font-size:0.85em; color:#666">Produit</label>
@@ -221,10 +221,10 @@
         ];
 
         let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
-        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || { cannages: [], pates: [], collations: [], boites: [] };
+        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || { "Cannages": [], "Pâtes": [], "Collations": [], "Boîtes": [] };
         let magActuel = "";
         let currentEditIdx = null;
-        let invTabActuel = "cannages";
+        let invTabActuel = "Cannages";
         let modalQtyVal = 0;
         
         let currentEditInvCat = "";
@@ -248,6 +248,15 @@
             if(targetPage) targetPage.classList.add('active');
             if(id === 'page-magasins') majBadges();
             if(id === 'page-inventaire') afficherInventaire();
+        }
+
+        function ouvrirInventaireDefaut() {
+            invTabActuel = "Cannages";
+            // Sélectionner visuellement le premier onglet (Cannages)
+            const firstNavBtn = document.querySelector('.navbar-bottom .nav-item');
+            document.querySelectorAll('.navbar-bottom .nav-item').forEach(b => b.classList.remove('active-nav'));
+            if(firstNavBtn) firstNavBtn.classList.add('active-nav');
+            nav('page-inventaire');
         }
 
         function ouvrirMagasin(id, logo, name) {
@@ -339,7 +348,7 @@
 
         function saveInvItem() {
             const name = document.getElementById('invNameInput').value.trim();
-            let cat = document.getElementById('invCatInput').value.trim().toLowerCase();
+            let cat = document.getElementById('invCatInput').value.trim();
             if(!name || !cat) return;
             
             if(!invDb[cat]) invDb[cat] = [];
@@ -349,9 +358,9 @@
             closeInvModal();
             invTabActuel = cat;
             
-            // Mettre à jour l'onglet actif visuellement si la catégorie existe dans la barre du bas
+            // S'assurer que l'onglet actif correspond dans la barre du bas si présent
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => {
-                if(btn.textContent.toLowerCase().includes(cat)) {
+                if(btn.textContent.trim().toLowerCase() === cat.toLowerCase()) {
                     document.querySelectorAll('.navbar-bottom .nav-item').forEach(b => b.classList.remove('active-nav'));
                     btn.classList.add('active-nav');
                 }
@@ -383,7 +392,7 @@
         }
         function saveEditInvItem() {
             const newName = document.getElementById('editInvNameInput').value.trim();
-            let newCat = document.getElementById('editInvCatInput').value.trim().toLowerCase();
+            let newCat = document.getElementById('editInvCatInput').value.trim();
             if(!newName || !newCat) return;
 
             invDb[currentEditInvCat].splice(currentEditInvIdx, 1);
@@ -401,7 +410,7 @@
         }
 
         function afficherInventaire() {
-            // Mettre à jour le titre du header avec la catégorie sélectionnée
+            // L'en-tête affiche exactement la catégorie de l'onglet actif, sans changer tout seul
             document.getElementById('invHeaderTitle').innerText = invTabActuel;
 
             const container = document.getElementById('invContainer');
