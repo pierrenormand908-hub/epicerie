@@ -156,13 +156,12 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <select id="invCatSelect" style="margin-top:4px; margin-bottom:10px">
-                <!-- Les options de catégories enregistrées s'injectent ici -->
-            </select>
             
-            <!-- Option pour ajouter une nouvelle catégorie si besoin -->
-            <input type="text" id="invNewCatInput" placeholder="Ou nouvelle catégorie..." style="margin-bottom:10px; display:none;">
-            <button type="button" id="toggleNewCatBtn" onclick="toggleNewCategoryInput()" style="background:none; border:none; color:var(--primary); font-weight:bold; font-size:0.85em; cursor:pointer; padding:0; margin-bottom:10px;">+ Ajouter une nouvelle catégorie</button>
+            <!-- Champ catégorie cliquable qui ouvre la fenêtre de gestion des catégories -->
+            <div style="display: flex; gap: 8px; margin-top: 4px; margin-bottom: 10px;">
+                <select id="invCatSelect" style="flex: 1;"></select>
+                <button type="button" onclick="openCatManagerModal()" style="background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 12px; font-weight: bold; cursor: pointer;">⚙️</button>
+            </div>
 
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
@@ -177,6 +176,27 @@
                 <button type="button" onclick="closeInvModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
                 <button type="button" onclick="saveInvItem()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Ajouter</button>
             </div>
+        </div>
+    </div>
+
+    <!-- NOUVELLE MODALE : GESTION DES CATEGORIES (AJOUT / SUPPRESSION) -->
+    <div id="catManagerModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Gérer les catégories</h3>
+            
+            <label style="font-size:0.85em; color:#666">Ajouter une catégorie</label>
+            <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:15px;">
+                <input type="text" id="newCatNameInput" placeholder="Nom...">
+                <button type="button" onclick="addNewCategory()" style="background:var(--primary); color:white; border:none; border-radius:10px; padding:0 15px; font-weight:bold; cursor:pointer;">Ajouter</button>
+            </div>
+
+            <label style="font-size:0.85em; color:#666">Supprimer une catégorie</label>
+            <div style="display:flex; gap:8px; margin-top:4px; margin-bottom:15px;">
+                <select id="delCatSelect" style="flex:1;"></select>
+                <button type="button" onclick="deleteCategory()" style="background:var(--danger); color:white; border:none; border-radius:10px; padding:0 12px; font-weight:bold; cursor:pointer;">Supprimer</button>
+            </div>
+
+            <button type="button" onclick="closeCatManagerModal()" style="width:100%; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer; background:white; font-weight:bold;">Fermer</button>
         </div>
     </div>
 
@@ -322,14 +342,13 @@
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
             if(el) el.classList.add('active-nav');
             
-            // L'en-tête prend FIXEMENT le nom de l'onglet cliqué
             document.getElementById('invHeaderTitle').innerText = tab;
-            
             afficherInventaire();
         }
 
         function remanierSelectCategories(selectId) {
             const select = document.getElementById(selectId);
+            if(!select) return;
             select.innerHTML = "";
             let categories = Object.keys(invDb);
             
@@ -346,24 +365,51 @@
             modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
-            document.getElementById('invNewCatInput').value = "";
-            document.getElementById('invNewCatInput').style.display = "none";
-            document.getElementById('toggleNewCatBtn').style.display = "block";
             
             remanierSelectCategories('invCatSelect');
             document.getElementById('invModal').style.display = 'flex';
         }
 
-        function toggleNewCategoryInput() {
-            const input = document.getElementById('invNewCatInput');
-            const btn = document.getElementById('toggleNewCatBtn');
-            input.style.display = "block";
-            input.focus();
-            btn.style.display = "none";
-        }
-
         function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
         
+        function openCatManagerModal() {
+            document.getElementById('newCatNameInput').value = "";
+            remanierSelectCategories('delCatSelect');
+            document.getElementById('catManagerModal').style.display = 'flex';
+        }
+
+        function closeCatManagerModal() {
+            document.getElementById('catManagerModal').style.display = 'none';
+            remanierSelectCategories('invCatSelect'); // Actualiser la liste principale
+        }
+
+        function addNewCategory() {
+            const name = document.getElementById('newCatNameInput').value.trim();
+            if(!name) return;
+            if(!invDb[name]) {
+                invDb[name] = [];
+                localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            }
+            document.getElementById('newCatNameInput').value = "";
+            remanierSelectCategories('delCatSelect');
+            remanierSelectCategories('invCatSelect');
+            alert("Catégorie ajoutée !");
+        }
+
+        function deleteCategory() {
+            const select = document.getElementById('delCatSelect');
+            const catToDel = select.value;
+            if(!catToDel) return;
+
+            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
+                delete invDb[catToDel];
+                localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+                remanierSelectCategories('delCatSelect');
+                remanierSelectCategories('invCatSelect');
+                afficherInventaire();
+            }
+        }
+
         function adjustModalQty(val) {
             modalQtyVal = Math.max(0, modalQtyVal + val);
             document.getElementById('invModalQty').innerText = modalQtyVal;
@@ -371,10 +417,7 @@
 
         function saveInvItem() {
             const name = document.getElementById('invNameInput').value.trim();
-            const newCatInput = document.getElementById('invNewCatInput').value.trim();
-            const selectCat = document.getElementById('invCatSelect').value;
-            
-            let cat = (newCatInput !== "" && document.getElementById('invNewCatInput').style.display === "block") ? newCatInput : selectCat;
+            const cat = document.getElementById('invCatSelect').value;
             
             if(!name || !cat) return;
             
