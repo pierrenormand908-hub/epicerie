@@ -350,11 +350,16 @@
             const select = document.getElementById(selectId);
             if(!select) return;
             select.innerHTML = "";
-            let categories = Object.keys(invDb);
             
-            if(categories.length === 0) {
-                categories = ["Sauces", "Pâtes", "Cannages", "Collations", "Boîtes"];
-            }
+            // Liste fixe des onglets de base par défaut si vides
+            let categories = ["Cannages", "Pâtes", "Collations", "Boîtes"];
+            
+            // Ajouter les catégories existantes de la base de données si elles y sont
+            Object.keys(invDb).forEach(cat => {
+                if(!categories.includes(cat)) {
+                    categories.push(cat);
+                }
+            });
 
             categories.forEach(cat => {
                 select.innerHTML += `<option value="${cat}">${cat}</option>`;
