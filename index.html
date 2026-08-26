@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8"> 
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Mon Épicerie Pro</title>
     <link rel="apple-touch-icon" href="epicerie.png">
@@ -430,7 +430,7 @@
             document.getElementById('newCatNameInput').value = "";
             remplirSelect('delCatSelect');
             remplirSelect('invCatSelect');
-            construireBarreNavigation();
+            construireBarreNavigation(); // CORRECTION : Mise à jour immédiate de la barre
             alert("Catégorie ajoutée !");
         }
 
@@ -458,7 +458,7 @@
 
                 remplirSelect('delCatSelect');
                 remplirSelect('invCatSelect');
-                construireBarreNavigation();
+                construireBarreNavigation(); // CORRECTION : Mise à jour immédiate de la barre après suppression
                 document.getElementById('invHeaderTitle').innerText = invTabActuel;
                 afficherInventaire();
             }
