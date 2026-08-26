@@ -245,7 +245,8 @@
         let currentEditInvIdx = null;
         let editInvQtyVal = 0;
 
-        const defaultCategories = [
+        // Gestion propre de la liste des catégories en mémoire + LocalStorage
+        let categoriesPersonnalisees = JSON.parse(localStorage.getItem('monCategoriesDB')) || [
             {name: "Cannages", icon: "🥫"},
             {name: "Pâtes", icon: "🍝"},
             {name: "Collations", icon: "🍪"},
@@ -341,14 +342,18 @@
 
         /* GESTION INVENTAIRE ET CATÉGORIES */
         function obtenirToutesLesCategories() {
-            let cats = [...defaultCategories];
-            // Ajouter aussi les catégories présentes dans invDb (même si elles sont vides ou créées)
+            // S'assure que toute catégorie ayant des items dans invDb apparaît aussi
+            let cats = [...categoriesPersonnalisees];
             Object.keys(invDb).forEach(catName => {
                 if(!cats.some(c => c.name === catName)) {
                     cats.push({ name: catName, icon: "📁" });
                 }
             });
             return cats;
+        }
+
+        function sauvegarderCategories() {
+            localStorage.setItem('monCategoriesDB', JSON.stringify(categoriesPersonnalisees));
         }
 
         function construireBarreNavigation() {
@@ -425,10 +430,14 @@
                 return;
             }
 
+            categoriesPersonnalisees.push({ name: name, icon: "📁" });
+            sauvegarderCategories();
+
             if(!invDb[name]) {
                 invDb[name] = [];
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             }
+
             document.getElementById('newCatNameInput').value = "";
             remplirSelect('delCatSelect');
             remplirSelect('invCatSelect');
@@ -441,21 +450,26 @@
             const catToDel = select.value;
             if(!catToDel) return;
 
-            // Empêcher de supprimer la dernière catégorie par défaut s'il n'en reste plus, ou autoriser la suppression
-            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" ?`)) {
-                // Supprimer de l'objet de données si elle y est
+            if(categoriesPersonnalisees.length <= 1) {
+                alert("Vous devez garder au moins une catégorie !");
+                return;
+            }
+
+            if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
+                // Supprimer de la liste des catégories
+                categoriesPersonnalisees = categoriesPersonnalisees.filter(c => c.name !== catToDel);
+                sauvegarderCategories();
+
+                // Supprimer des données d'inventaire
                 delete invDb[catToDel];
-                
-                // Si c'est une catégorie par défaut qui n'a pas de produits dans invDb mais qu'on veut masquer/retirer
-                // On s'assure de la retirer de l'affichage en forçant la mise à jour
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
                 
-                // Si la catégorie supprimée était celle active, on bascule sur "Cannages" par défaut
+                // Si la catégorie active était celle supprimée, basculer sur la première disponible
                 if(invTabActuel === catToDel) {
-                    invTabActuel = "Cannages";
+                    const remaining = obtenirToutesLesCategories();
+                    invTabActuel = remaining.length > 0 ? remaining[0].name : "";
                 }
 
-                // Rafraîchir les sélecteurs et l'interface
                 remplirSelect('delCatSelect');
                 remplirSelect('invCatSelect');
                 construireBarreNavigation();
