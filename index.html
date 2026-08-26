@@ -354,12 +354,6 @@
 
         function updateInvQty(cat, idx, change) {
             invDb[cat][idx].qty = Math.max(0, invDb[cat][idx].qty + change);
-            if(invDb[cat][idx].qty === 0) {
-                invDb[cat].splice(idx, 1);
-                if(invDb[cat].length === 0) {
-                    delete invDb[cat];
-                }
-            }
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             afficherInventaire();
         }
