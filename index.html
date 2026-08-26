@@ -65,6 +65,388 @@
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; box-sizing: border-box; }
         .qty-control { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #eee; border-radius: 10px; padding: 5px; }
         .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <!-- ACCUEIL -->
+    <div id="page-accueil" class="page active">
+        <h1>Mon Épicerie</h1>
+        <img src="intro.png" class="img-intro">
+        <button class="btn-start" onclick="nav('page-magasins')">Commencer</button>
+    </div>
+
+    <!-- MAGASINS / LISTES -->
+    <div id="page-magasins" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-inventaire')">Inventaire</button>
+            <h2>Mes Listes</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="grid-magasins" id="grille"></div>
+    </div>
+
+    <!-- DETAIL LISTE MAGASIN -->
+    <div id="page-liste" class="page">
+        <div class="header-liste">
+            <button class="btn-back" onclick="nav('page-magasins')">←</button>
+            <img id="logo-actuel" class="logo-header-actuel" src="">
+            <h3 id="titre-magasin" class="titre-header-actuel"></h3>
+        </div>
+        <div class="input-area">
+            <div class="input-row">
+                <input type="text" id="itemInput" placeholder="Article...">
+                <button class="btn-add" onclick="addItem()">+</button>
+            </div>
+            <div class="input-row">
+                <input type="number" id="itemPrice" placeholder="0.00 $">
+                <input type="number" id="itemQty" value="1" style="width:60px">
+            </div>
+        </div>
+        <div class="total-banner">
+            <div>TOTAL <span id="itemsRemaining" style="font-size: 0.7em; color: #27ae60;"></span></div>
+            <div id="displayTotal">0.00 $</div>
+        </div>
+        <ul id="itemList"></ul>
+        <button class="btn-clear" onclick="clearList()">Vider la liste</button>
+    </div>
+
+    <!-- PAGE INVENTAIRE -->
+    <div id="page-inventaire" class="page">
+        <div class="header-top">
+            <button class="btn-header" onclick="nav('page-magasins')">← Retour</button>
+            <h2 id="inv-title">Cannages</h2>
+            <div style="width: 70px;"></div>
+        </div>
+        <div class="inv-content">
+            <ul id="invList" class="inv-list"></ul>
+        </div>
+        <button class="btn-fab" onclick="openInvModal()">+</button>
+        <div class="navbar-bottom">
+            <button class="nav-item active-nav" onclick="setInvTab('cannages', this)"><span>🥫</span>Cannages</button>
+            <button class="nav-item" onclick="setInvTab('pates', this)"><span>🍝</span>Pâtes</button>
+            <button class="nav-item" onclick="setInvTab('collations', this)"><span>🍪</span>Collations</button>
+            <button class="nav-item" onclick="setInvTab('boites', this)"><span>📦</span>Boîtes</button>
+        </div>
+    </div>
+
+    <!-- MODALE EDITION ARTICLE MAGASIN -->
+    <div id="editModal" class="modal">
+        <div class="modal-content">
+            <h3 id="modalTitle" style="margin-top:0">Modifier</h3>
+            <input type="number" id="editPrice" step="0.01" placeholder="Prix" style="margin-bottom:10px">
+            <input type="number" id="editQty" placeholder="Quantité" style="margin-bottom:10px">
+            <label><input type="checkbox" id="editTaxable"> Taxes</label>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button onclick="saveEdit()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE AJOUT/EDITION INVENTAIRE -->
+    <div id="invModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
+            <label style="font-size:0.85em; color:#666">Catégorie</label>
+            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Nom de la catégorie..." style="margin-top:4px; margin-bottom:10px">
+            <datalist id="catSuggestions">
+                <option value="cannages">
+                <option value="pates">
+                <option value="collations">
+                <option value="boites">
+            </datalist>
+
+            <label style="font-size:0.85em; color:#666">Produit</label>
+            <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
+            
+            <label style="font-size:0.85em; color:#666">Quantité</label>
+            <div class="qty-control">
+                <button class="qty-btn" onclick="adjustModalQty(-1)">-</button>
+                <span id="invModalQty" style="font-size: 1.2em; font-weight: bold;">1</span>
+                <button class="qty-btn" onclick="adjustModalQty(1)">+</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button onclick="closeInvModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button onclick="saveInvItem()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const magasins = [
+            {id: "IGA", name: "IGA", logo: "iga.png", scale: 1.4},
+            {id: "Metro", name: "Metro", logo: "metro.png", scale: 0.7},
+            {id: "Maxi", name: "Maxi", logo: "maxi.png", scale: 0.8},
+            {id: "SuperC", name: "Super C", logo: "superc.png", scale: 0.7},
+            {id: "Tigre", name: "Tigre Géant", logo: "tigre.png", scale: 0.8},
+            {id: "Walmart", name: "Walmart", logo: "walmart.png", scale: 0.8},
+            {id: "Costco", name: "Costco", logo: "costco.png", scale: 0.7},
+            {id: "Dollo", name: "Dollorama", logo: "dollo.png", scale: 0.9},
+            {id: "Uniprix", name: "Uniprix", logo: "uniprix.png", scale: 0.9},
+            {id: "JeanCoutu", name: "Jean Coutu", logo: "jeancoutu.png", scale: 1.0},
+            {id: "Brunet", name: "Brunet", logo: "brunet.png", scale: 0.8},
+            {id: "Pharmaprix", name: "Pharmaprix", logo: "pharmaprix.png", scale: 0.9},
+            {id: "Proxim", name: "Proxim", logo: "proxim.png", scale: 0.8},
+            {id: "Familiprix", name: "Familiprix", logo: "familiprix.png", scale: 0.9}
+        ];
+
+        let db = JSON.parse(localStorage.getItem('monEpicerieDB')) || {};
+        let invDb = JSON.parse(localStorage.getItem('monInventaireDB')) || { cannages: [], pates: [], collations: [], boites: [] };
+        let magActuel = "";
+        let currentEditIdx = null;
+        let invTabActuel = "cannages";
+        let modalQtyVal = 1;
+
+        const grille = document.getElementById('grille');
+        magasins.forEach(m => {
+            grille.innerHTML += `
+                <div class="magasin-card" onclick="ouvrirMagasin('${m.id}', '${m.logo}', '${m.name}')">
+                    <div class="logo-container"><img src="${m.logo}" class="magasin-logo" style="transform: scale(${m.scale || 1});"></div>
+                    <p class="magasin-name">${m.name}</p>
+                    <div id="check-${m.id}" class="badge-check">✓</div>
+                    <div id="count-${m.id}" class="badge-count">0</div>
+                </div>`;
+        });
+
+        function nav(id) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            const targetPage = document.getElementById(id);
+            if(targetPage) targetPage.classList.add('active');
+            if(id === 'page-magasins') majBadges();
+            if(id === 'page-inventaire') afficherInventaire();
+        }
+
+        function ouvrirMagasin(id, logo, name) {
+            magActuel = id;
+            document.getElementById('titre-magasin').innerText = name;
+            document.getElementById('logo-actuel').src = logo;
+            afficherItems();
+            nav('page-liste');
+        }
+
+        function addItem() {
+            const inp = document.getElementById('itemInput'), pri = document.getElementById('itemPrice'), qty = document.getElementById('itemQty');
+            if(!inp.value.trim()) return;
+            if(!db[magActuel]) db[magActuel] = [];
+            db[magActuel].push({ t: inp.value, p: parseFloat(pri.value) || 0, q: parseInt(qty.value) || 1, c: false, tx: false });
+            inp.value = ""; pri.value = ""; qty.value = "1";
+            save(); afficherItems();
+        }
+
+        function afficherItems() {
+            const ul = document.getElementById('itemList'), totalDisplay = document.getElementById('displayTotal'), remainingDisplay = document.getElementById('itemsRemaining');
+            ul.innerHTML = "";
+            let totalGeneral = 0, itemsToFind = 0;
+
+            if(db[magActuel]) {
+                db[magActuel].forEach((it, idx) => {
+                    const sousTotal = it.p * it.q;
+                    const prixFinal = it.tx ? sousTotal * 1.14975 : sousTotal;
+                    totalGeneral += prixFinal;
+                    if(!it.c) itemsToFind++;
+
+                    ul.innerHTML += `
+                        <li>
+                            <input type="checkbox" ${it.c ? 'checked' : ''} onchange="toggleCheck(${idx})">
+                            <div class="item-info" onclick="openModal(${idx})" style="${it.c ? 'text-decoration:line-through; color:#ccc;' : ''}">
+                                <div style="font-weight:bold">${it.t}</div>
+                                <div style="font-size:0.8em; color:#888">${it.q} x ${it.p.toFixed(2)}$ ${it.tx?'(+tax)':''}</div>
+                            </div>
+                            <span onclick="del(${idx})" style="color:#e74c3c; padding:10px; cursor:pointer;">✕</span>
+                        </li>`;
+                });
+            }
+            totalDisplay.innerText = totalGeneral.toFixed(2) + " $";
+            remainingDisplay.innerText = "(" + itemsToFind + " restants)";
+        }
+
+        function toggleCheck(idx) { db[magActuel][idx].c = !db[magActuel][idx].c; save(); afficherItems(); }
+        function del(idx) { db[magActuel].splice(idx, 1); save(); afficherItems(); }
+        function clearList() { if(confirm("Vider la liste ?")) { db[magActuel] = []; save(); afficherItems(); } }
+        
+        function openModal(idx) {
+            currentEditIdx = idx;
+            const it = db[magActuel][idx];
+            document.getElementById('modalTitle').innerText = it.t;
+            document.getElementById('editPrice').value = it.p;
+            document.getElementById('editQty').value = it.q;
+            document.getElementById('editTaxable').checked = it.tx;
+            document.getElementById('editModal').style.display = 'flex';
+        }
+        function closeModal() { document.getElementById('editModal').style.display = 'none'; }
+        function saveEdit() {
+            db[magActuel][currentEditIdx].p = parseFloat(document.getElementById('editPrice').value) || 0;
+            db[magActuel][currentEditIdx].q = parseInt(document.getElementById('editQty').value) || 1;
+            db[magActuel][currentEditIdx].tx = document.getElementById('editTaxable').checked;
+            save(); afficherItems(); closeModal();
+        }
+
+        /* GESTION INVENTAIRE */
+        function setInvTab(tab, el) {
+            invTabActuel = tab;
+            document.querySelectorAll('.nav-item').forEach(btn => btn.classList.remove('active-nav'));
+            if(el) el.classList.add('active-nav');
+            const titles = {cannages: "Cannages", pates: "Pâtes", collations: "Collations", boites: "Boîtes"};
+            document.getElementById('inv-title').innerText = titles[tab] || tab;
+            afficherInventaire();
+        }
+
+        function openInvModal() {
+            modalQtyVal = 1;
+            document.getElementById('invModalQty').innerText = modalQtyVal;
+            document.getElementById('invNameInput').value = "";
+            document.getElementById('invCatInput').value = invTabActuel;
+            document.getElementById('invModal').style.display = 'flex';
+        }
+        function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
+        
+        function adjustModalQty(val) {
+            modalQtyVal = Math.max(1, modalQtyVal + val);
+            document.getElementById('invModalQty').innerText = modalQtyVal;
+        }
+
+        function saveInvItem() {
+            const name = document.getElementById('invNameInput').value.trim();
+            let cat = document.getElementById('invCatInput').value.trim().toLowerCase();
+            if(!name || !cat) return;
+            
+            if(!invDb[cat]) invDb[cat] = [];
+            invDb[cat].push({ name: name, qty: modalQtyVal });
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            
+            // Si la catégorie créée correspond à l'un des onglets principaux, on bascule dessus
+            invTabActuel = cat;
+            closeInvModal();
+            
+            // Met à jour l'onglet actif dans la barre de navigation si présent
+            const navButtons = document.querySelectorAll('.navbar-bottom .nav-item');
+            navButtons.forEach(btn => {
+                btn.classList.remove('active-nav');
+                if(btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(cat)) {
+                    btn.classList.add('active-nav');
+                }
+            });
+            
+            const titles = {cannages: "Cannages", pates: "Pâtes", collations: "Collations", boites: "Boîtes"};
+            document.getElementById('inv-title').innerText = titles[cat] || cat;
+            afficherInventaire();
+        }
+
+        function updateInvQty(cat, idx, change) {
+            invDb[cat][idx].qty = Math.max(0, invDb[cat][idx].qty + change);
+            if(invDb[cat][idx].qty === 0) {
+                invDb[cat].splice(idx, 1);
+            }
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            afficherInventaire();
+        }
+
+        function afficherInventaire() {
+            const ul = document.getElementById('invList');
+            ul.innerHTML = "";
+            const items = invDb[invTabActuel] || [];
+            
+            if(items.length === 0) {
+                ul.innerHTML = `<li style="justify-content:center; color:#999; padding:30px;">Aucun article dans cette section</li>`;
+                return;
+            }
+
+            items.forEach((item, idx) => {
+                ul.innerHTML += `
+                    <li>
+                        <div class="item-info">
+                            <div style="font-weight:bold">${item.name}</div>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <button class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
+                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                            <button class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
+                        </div>
+                    </li>`;
+            });
+        }
+
+        function majBadges() {
+            magasins.forEach(m => {
+                const n = db[m.id] ? db[m.id].length : 0;
+                const bC = document.getElementById('count-'+m.id), bK = document.getElementById('check-'+m.id);
+                if(bC) { bC.innerText = n; bC.style.visibility = n > 0 ? 'visible' : 'hidden'; }
+                if(bK) bK.style.visibility = n > 0 ? 'visible' : 'hidden';
+            });
+        }
+
+        function save() { localStorage.setItem('monEpicerieDB', JSON.stringify(db)); }
+        window.onload = majBadges;
+    </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Mon Épicerie Pro</title>
+    <link rel="apple-touch-icon" href="epicerie.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <style>
+        :root { --primary: #27ae60; --danger: #e74c3c; --bg: #f4f7f6; --text: #2c3e50; }
+        html, body { height: 100%; width: 100%; background: var(--bg); margin: 0; padding: 0; overflow: hidden; }
+        body { font-family: 'Segoe UI', sans-serif; color: var(--text); -webkit-font-smoothing: antialiased; }
+        .page { display: none; height: 100vh; width: 100%; flex-direction: column; box-sizing: border-box; position: absolute; top: 0; left: 0; overflow: hidden; }
+        .active { display: flex; }
+
+        /* ACCUEIL */
+        #page-accueil { text-align: center; padding: 20px; justify-content: center; align-items: center; background: white; z-index: 10; }
+        .img-intro { width: 80%; max-width: 250px; border-radius: 20px; margin-bottom: 30px; box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        .btn-start { background: var(--primary); color: white; padding: 18px 50px; border: none; border-radius: 35px; font-size: 1.3em; font-weight: bold; cursor: pointer; }
+
+        /* HEADERS MAGASINS & INVENTAIRE */
+        .header-top { display: flex; justify-content: space-between; align-items: center; padding: 40px 15px 15px 15px; background: white; border-bottom: 1px solid #eee; flex-shrink: 0; }
+        .header-top h2 { margin: 0; font-size: 1.4em; }
+        .btn-header { background: #eee; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; cursor: pointer; font-size: 0.9em; }
+
+        .grid-magasins { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 15px; flex: 1; overflow-y: auto; min-height: 0; -webkit-overflow-scrolling: touch; padding-bottom: 40px; }
+        .magasin-card { background: white; padding: 15px; border-radius: 18px; position: relative; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); height: fit-content; cursor: pointer; }
+        .logo-container { width: 100%; height: 60px; display: flex; align-items: center; justify-content: center; margin-bottom: 8px; }
+        .magasin-logo { max-width: 85%; max-height: 55px; object-fit: contain; }
+        .magasin-name { font-weight: bold; font-size: 0.9em; margin: 0; color: #555; padding: 0 20px; }
+        .badge-check, .badge-count { position: absolute; bottom: 12px; width: 20px; height: 20px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; color: white; visibility: hidden; }
+        .badge-check { left: 12px; background: var(--primary); }
+        .badge-count { right: 12px; background: var(--danger); }
+
+        /* LISTE PAGE */
+        .header-liste { padding: 40px 15px 12px 15px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; border-bottom: 1px solid #ddd; flex-shrink: 0; }
+        .btn-back { position: absolute; left: 15px; top: 50%; transform: translateY(-50%); border: none; background: #eee; border-radius: 50%; width: 40px; height: 40px; font-size: 20px; cursor: pointer; }
+        .logo-header-actuel { width: 75px; height: 75px; object-fit: contain; }
+        .titre-header-actuel { margin: 4px 0 0 0; font-size: 1em; color: var(--text); font-weight: bold; }
+
+        .input-area { padding: 10px 15px; background: white; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
+        .input-row { display: flex; gap: 8px; }
+        input { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        #itemInput { flex: 1; }
+        .btn-add { background: var(--primary); color: white; border: none; width: 50px; border-radius: 10px; font-size: 24px; cursor: pointer; }
+        .total-banner { background: #2c3e50; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-shrink: 0; }
+        
+        #itemList, .inv-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; background: #fff; -webkit-overflow-scrolling: touch; }
+        li { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; gap: 12px; }
+        .item-info { flex: 1; }
+        .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
+
+        /* INVENTAIRE & NAVBAR */
+        .inv-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: white; }
+        .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
+        .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #77f; cursor: pointer; gap: 3px; }
+        .nav-item span { font-size: 1.4em; }
+        .nav-item.active-nav { color: var(--primary); font-weight: bold; }
+
+        .btn-fab { position: absolute; right: 20px; bottom: 85px; width: 55px; height: 55px; background: var(--primary); color: white; border-radius: 50%; border: none; font-size: 30px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; z-index: 50; display: flex; align-items: center; justify-content: center; }
+
+        /* MODALES */
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; box-sizing: border-box; }
+        .qty-control { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #eee; border-radius: 10px; padding: 5px; }
+        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; }
         select { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; width: 100%; background: white; margin-bottom: 10px; }
     </style>
 </head>
