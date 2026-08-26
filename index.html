@@ -55,7 +55,7 @@
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
         
         .inv-card-container { position: relative; margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: var(--danger); }
-        .inv-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; }
+        .inv-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; cursor: pointer; }
         .inv-card { background: white; padding: 15px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; transition: transform 0.2s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
         .inv-card-info { flex: 1; }
         .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
@@ -71,7 +71,7 @@
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; box-sizing: border-box; }
         .qty-control { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #eee; border-radius: 10px; padding: 5px; }
-        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; user-select: none; }
         .action-btn-group { display: flex; align-items: center; gap: 8px; }
         .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #666; }
     </style>
@@ -129,11 +129,8 @@
         </div>
         <div class="inv-content" id="invContainer"></div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
-        <div class="navbar-bottom">
-            <button class="nav-item active-nav" onclick="setInvTab('Cannages', this)"><span>🥫</span>Cannages</button>
-            <button class="nav-item" onclick="setInvTab('Pâtes', this)"><span>🍝</span>Pâtes</button>
-            <button class="nav-item" onclick="setInvTab('Collations', this)"><span>🍪</span>Collations</button>
-            <button class="nav-item" onclick="setInvTab('Boîtes', this)"><span>📦</span>Boîtes</button>
+        <div class="navbar-bottom" id="invNavBar">
+            <!-- Les onglets seront générés dynamiquement -->
         </div>
     </div>
 
@@ -153,7 +150,7 @@
 
     <!-- MODALE AJOUT INVENTAIRE -->
     <div id="invModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
             <div style="display: flex; gap: 8px; margin-top: 4px; margin-bottom: 10px;">
@@ -179,7 +176,7 @@
 
     <!-- MODALE GESTION DES CATEGORIES -->
     <div id="catManagerModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-top:0">Gérer les catégories</h3>
             
             <label style="font-size:0.85em; color:#666">Ajouter une catégorie</label>
@@ -200,7 +197,7 @@
 
     <!-- MODALE EDITION PRODUIT INVENTAIRE -->
     <div id="editInvModal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" onclick="event.stopPropagation()">
             <h3 style="margin-top:0">Modifier le produit</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
             <select id="editInvCatSelect" style="margin-top:4px; margin-bottom:10px"></select>
@@ -250,6 +247,13 @@
         let currentEditInvIdx = null;
         let editInvQtyVal = 0;
 
+        const defaultCategories = [
+            {name: "Cannages", icon: "🥫"},
+            {name: "Pâtes", icon: "🍝"},
+            {name: "Collations", icon: "🍪"},
+            {name: "Boîtes", icon: "📦"}
+        ];
+
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
             grille.innerHTML += `
@@ -266,7 +270,10 @@
             const targetPage = document.getElementById(id);
             if(targetPage) targetPage.classList.add('active');
             if(id === 'page-magasins') majBadges();
-            if(id === 'page-inventaire') afficherInventaire();
+            if(id === 'page-inventaire') {
+                construireBarreNavigation();
+                afficherInventaire();
+            }
         }
 
         function ouvrirMagasin(id, logo, name) {
@@ -334,31 +341,52 @@
             save(); afficherItems(); closeModal();
         }
 
-        /* GESTION INVENTAIRE PAR ONGLETS DE CATÉGORIES */
+        /* GESTION INVENTAIRE ET CATÉGORIES */
+        function obtenirToutesLesCategories() {
+            let cats = [...defaultCategories];
+            Object.keys(invDb).forEach(catName => {
+                if(!cats.some(c => c.name === catName)) {
+                    cats.push({ name: catName, icon: "📁" });
+                }
+            });
+            return cats;
+        }
+
+        function construireBarreNavigation() {
+            const navBar = document.getElementById('invNavBar');
+            if(!navBar) return;
+            navBar.innerHTML = "";
+            
+            const cats = obtenirToutesLesCategories();
+            cats.forEach(cat => {
+                const isActive = (cat.name === invTabActuel) ? 'active-nav' : '';
+                navBar.innerHTML += `
+                    <button class="nav-item ${isActive}" onclick="setInvTab('${cat.name}', this)">
+                        <span>${cat.icon}</span>${cat.name}
+                    </button>`;
+            });
+        }
+
         function setInvTab(tab, el) {
             invTabActuel = tab;
             document.querySelectorAll('.navbar-bottom .nav-item').forEach(btn => btn.classList.remove('active-nav'));
-            if(el) el.classList.add('active-nav');
+            if(el) {
+                el.classList.add('active-nav');
+            } else {
+                construireBarreNavigation();
+            }
             
             document.getElementById('invHeaderTitle').innerText = tab;
             afficherInventaire();
         }
 
-        function remanierSelectCategories(selectId) {
+        function remplirSelect(selectId) {
             const select = document.getElementById(selectId);
             if(!select) return;
             select.innerHTML = "";
-            
-            let categories = ["Cannages", "Pâtes", "Collations", "Boîtes"];
-            
-            Object.keys(invDb).forEach(cat => {
-                if(!categories.includes(cat)) {
-                    categories.push(cat);
-                }
-            });
-
-            categories.forEach(cat => {
-                select.innerHTML += `<option value="${cat}">${cat}</option>`;
+            const cats = obtenirToutesLesCategories();
+            cats.forEach(c => {
+                select.innerHTML += `<option value="${c.name}">${c.name}</option>`;
             });
         }
 
@@ -367,7 +395,7 @@
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
             
-            remanierSelectCategories('invCatSelect');
+            remplirSelect('invCatSelect');
             const selectCat = document.getElementById('invCatSelect');
             if(invTabActuel) selectCat.value = invTabActuel;
             
@@ -378,25 +406,34 @@
         
         function openCatManagerModal() {
             document.getElementById('newCatNameInput').value = "";
-            remanierSelectCategories('delCatSelect');
+            remplirSelect('delCatSelect');
             document.getElementById('catManagerModal').style.display = 'flex';
         }
 
         function closeCatManagerModal() {
             document.getElementById('catManagerModal').style.display = 'none';
-            remanierSelectCategories('invCatSelect');
+            remplirSelect('invCatSelect');
+            construireBarreNavigation();
         }
 
         function addNewCategory() {
             const name = document.getElementById('newCatNameInput').value.trim();
             if(!name) return;
+            
+            const allCats = obtenirToutesLesCategories();
+            if(allCats.some(c => c.name.toLowerCase() === name.toLowerCase())) {
+                alert("Cette catégorie existe déjà !");
+                return;
+            }
+
             if(!invDb[name]) {
                 invDb[name] = [];
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             }
             document.getElementById('newCatNameInput').value = "";
-            remanierSelectCategories('delCatSelect');
-            remanierSelectCategories('invCatSelect');
+            remplirSelect('delCatSelect');
+            remplirSelect('invCatSelect');
+            construireBarreNavigation();
             alert("Catégorie ajoutée !");
         }
 
@@ -405,11 +442,20 @@
             const catToDel = select.value;
             if(!catToDel) return;
 
+            // Empêcher la suppression des catégories de base par défaut si désiré, ou autoriser
             if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
                 delete invDb[catToDel];
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
-                remanierSelectCategories('delCatSelect');
-                remanierSelectCategories('invCatSelect');
+                
+                // Si on était sur cette catégorie, basculer vers Cannages
+                if(invTabActuel === catToDel) {
+                    invTabActuel = "Cannages";
+                }
+
+                remplirSelect('delCatSelect');
+                remplirSelect('invCatSelect');
+                construireBarreNavigation();
+                document.getElementById('invHeaderTitle').innerText = invTabActuel;
                 afficherInventaire();
             }
         }
@@ -430,7 +476,7 @@
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             
             closeInvModal();
-            afficherInventaire();
+            setInvTab(cat, null);
         }
 
         function updateInvQty(cat, idx, change) {
@@ -454,7 +500,7 @@
             const item = invDb[cat][idx];
             editInvQtyVal = item.qty;
             
-            remanierSelectCategories('editInvCatSelect');
+            remplirSelect('editInvCatSelect');
             document.getElementById('editInvCatSelect').value = cat;
             document.getElementById('editInvNameInput').value = item.name;
             document.getElementById('editInvModalQty').innerText = editInvQtyVal;
@@ -480,7 +526,7 @@
 
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             closeEditInvModal();
-            afficherInventaire();
+            setInvTab(newCat, null);
         }
 
         function initSwipeEvents() {
