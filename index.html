@@ -170,7 +170,7 @@
             <label style="font-size:0.85em; color:#666">Quantité</label>
             <div class="qty-control">
                 <button type="button" class="qty-btn" onclick="adjustModalQty(-1)">-</button>
-                <span id="invModalQty" style="font-size: 1.2em; font-weight: bold;">1</span>
+                <span id="invModalQty" style="font-size: 1.2em; font-weight: bold;">0</span>
                 <button type="button" class="qty-btn" onclick="adjustModalQty(1)">+</button>
             </div>
             <div style="display:flex; gap:10px; margin-top:15px">
@@ -193,7 +193,7 @@
             <label style="font-size:0.85em; color:#666">Quantité</label>
             <div class="qty-control">
                 <button type="button" class="qty-btn" onclick="adjustEditInvQty(-1)">-</button>
-                <span id="editInvModalQty" style="font-size: 1.2em; font-weight: bold;">1</span>
+                <span id="editInvModalQty" style="font-size: 1.2em; font-weight: bold;">0</span>
                 <button type="button" class="qty-btn" onclick="adjustEditInvQty(1)">+</button>
             </div>
             <div style="display:flex; gap:10px; margin-top:15px">
@@ -226,11 +226,11 @@
         let magActuel = "";
         let currentEditIdx = null;
         let invTabActuel = "cannages";
-        let modalQtyVal = 1;
+        let modalQtyVal = 0;
         
         let currentEditInvCat = "";
         let currentEditInvIdx = null;
-        let editInvQtyVal = 1;
+        let editInvQtyVal = 0;
 
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
@@ -325,7 +325,7 @@
         }
 
         function openInvModal() {
-            modalQtyVal = 1;
+            modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
             document.getElementById('invCatInput').value = invTabActuel;
@@ -334,7 +334,7 @@
         function closeInvModal() { document.getElementById('invModal').style.display = 'none'; }
         
         function adjustModalQty(val) {
-            modalQtyVal = Math.max(1, modalQtyVal + val);
+            modalQtyVal = Math.max(0, modalQtyVal + val);
             document.getElementById('invModalQty').innerText = modalQtyVal;
         }
 
