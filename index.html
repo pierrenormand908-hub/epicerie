@@ -245,7 +245,6 @@
         let currentEditInvIdx = null;
         let editInvQtyVal = 0;
 
-        // Gestion propre de la liste des catégories en mémoire + LocalStorage
         let categoriesPersonnalisees = JSON.parse(localStorage.getItem('monCategoriesDB')) || [
             {name: "Cannages", icon: "🥫"},
             {name: "Pâtes", icon: "🍝"},
@@ -340,16 +339,8 @@
             save(); afficherItems(); closeModal();
         }
 
-        /* GESTION INVENTAIRE ET CATÉGORIES */
         function obtenirToutesLesCategories() {
-            // S'assure que toute catégorie ayant des items dans invDb apparaît aussi
-            let cats = [...categoriesPersonnalisees];
-            Object.keys(invDb).forEach(catName => {
-                if(!cats.some(c => c.name === catName)) {
-                    cats.push({ name: catName, icon: "📁" });
-                }
-            });
-            return cats;
+            return categoriesPersonnalisees;
         }
 
         function sauvegarderCategories() {
@@ -416,8 +407,6 @@
 
         function closeCatManagerModal() {
             document.getElementById('catManagerModal').style.display = 'none';
-            remplirSelect('invCatSelect');
-            construireBarreNavigation();
         }
 
         function addNewCategory() {
@@ -456,15 +445,12 @@
             }
 
             if(confirm(`Voulez-vous vraiment supprimer la catégorie "${catToDel}" et tous ses produits ?`)) {
-                // Supprimer de la liste des catégories
                 categoriesPersonnalisees = categoriesPersonnalisees.filter(c => c.name !== catToDel);
                 sauvegarderCategories();
 
-                // Supprimer des données d'inventaire
                 delete invDb[catToDel];
                 localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
                 
-                // Si la catégorie active était celle supprimée, basculer sur la première disponible
                 if(invTabActuel === catToDel) {
                     const remaining = obtenirToutesLesCategories();
                     invTabActuel = remaining.length > 0 ? remaining[0].name : "";
