@@ -55,6 +55,9 @@
         /* INVENTAIRES & NAVIGATION BASSE FIXE */
         .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
         
+        .section-header-title { font-size: 1.1em; font-weight: bold; color: var(--primary); margin: 15px 0 8px 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+        .section-header-title:first-child { margin-top: 5px; }
+
         .inv-card-container { position: relative; margin-bottom: 10px; border-radius: 14px; overflow: hidden; background: var(--danger); }
         .inv-delete-bg { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background: var(--danger); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 14px; cursor: pointer; }
         .inv-card { background: white; padding: 15px; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; position: relative; z-index: 2; transition: transform 0.2s ease; box-shadow: 0 3px 10px rgba(0,0,0,0.05); }
@@ -209,6 +212,15 @@
             <h3 style="margin-top:0" id="invModalTitle">Ajouter à l'inventaire</h3>
             <input type="hidden" id="invModalCat">
             
+            <label style="font-size:0.85em; color:#666">Section</label>
+            <select id="invSectionSelect" style="margin-top:4px; margin-bottom:10px">
+                <option value="Sauces">Sauces</option>
+                <option value="Légumes">Légumes</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Soupes">Soupes</option>
+                <option value="Autre">Autre</option>
+            </select>
+
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="invNameInput" placeholder="Nom du produit..." style="margin-top:4px; margin-bottom:12px">
             
@@ -231,6 +243,15 @@
             <h3 style="margin-top:0">Modifier le produit</h3>
             <input type="hidden" id="editInvCat">
             <input type="hidden" id="editInvIdx">
+
+            <label style="font-size:0.85em; color:#666">Section</label>
+            <select id="editInvSectionSelect" style="margin-top:4px; margin-bottom:10px">
+                <option value="Sauces">Sauces</option>
+                <option value="Légumes">Légumes</option>
+                <option value="Fruits">Fruits</option>
+                <option value="Soupes">Soupes</option>
+                <option value="Autre">Autre</option>
+            </select>
 
             <label style="font-size:0.85em; color:#666">Produit</label>
             <input type="text" id="editInvNameInput" style="margin-top:4px; margin-bottom:12px">
@@ -278,8 +299,6 @@
         let modalQtyVal = 0;
         let editInvQtyVal = 0;
 
-        const categoriesFixes = ["Cannages", "Pâtes", "Collations", "Boîtes"];
-
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
             grille.innerHTML += `
@@ -299,7 +318,6 @@
             if(id === 'page-magasins') majBadges();
             if(id.startsWith('page-inventaire-')) {
                 const catName = id.replace('page-inventaire-', '');
-                // Capitalisation propre pour correspondre à la clé
                 const mapCat = { "cannages": "Cannages", "pates": "Pâtes", "collations": "Collations", "boites": "Boîtes" };
                 afficherInventaire(mapCat[catName]);
             }
@@ -375,6 +393,7 @@
             modalQtyVal = 0;
             document.getElementById('invModalQty').innerText = modalQtyVal;
             document.getElementById('invNameInput').value = "";
+            document.getElementById('invSectionSelect').value = "Sauces";
             document.getElementById('invModalCat').value = cat;
             document.getElementById('invModalTitle').innerText = "Ajouter à " + cat;
             document.getElementById('invModal').style.display = 'flex';
@@ -389,36 +408,38 @@
 
         function saveInvItem() {
             const name = document.getElementById('invNameInput').value.trim();
+            const section = document.getElementById('invSectionSelect').value;
             const cat = document.getElementById('invModalCat').value;
             if(!name) return;
             
             if(!invDb[cat]) invDb[cat] = [];
-            invDb[cat].push({ name: name, qty: modalQtyVal });
+            invDb[cat].push({ name: name, section: section, qty: modalQtyVal });
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             
             closeInvModal();
             afficherInventaire(cat);
         }
 
-        function updateInvQty(cat, idx, change) {
-            invDb[cat][idx].qty = Math.max(0, invDb[cat][idx].qty + change);
+        function updateInvQty(cat, realIdx, change) {
+            invDb[cat][realIdx].qty = Math.max(0, invDb[cat][realIdx].qty + change);
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             afficherInventaire(cat);
         }
 
-        function deleteInvItem(cat, idx) {
-            invDb[cat].splice(idx, 1);
+        function deleteInvItem(cat, realIdx) {
+            invDb[cat].splice(realIdx, 1);
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             afficherInventaire(cat);
         }
 
-        function openEditInvModal(cat, idx) {
+        function openEditInvModal(cat, realIdx) {
             document.getElementById('editInvCat').value = cat;
-            document.getElementById('editInvIdx').value = idx;
-            const item = invDb[cat][idx];
+            document.getElementById('editInvIdx').value = realIdx;
+            const item = invDb[cat][realIdx];
             editInvQtyVal = item.qty;
             
             document.getElementById('editInvNameInput').value = item.name;
+            document.getElementById('editInvSectionSelect').value = item.section || "Sauces";
             document.getElementById('editInvModalQty').innerText = editInvQtyVal;
             document.getElementById('editInvModal').style.display = 'flex';
         }
@@ -432,12 +453,14 @@
 
         function saveEditInvItem() {
             const cat = document.getElementById('editInvCat').value;
-            const idx = document.getElementById('editInvIdx').value;
+            const realIdx = document.getElementById('editInvIdx').value;
             const newName = document.getElementById('editInvNameInput').value.trim();
+            const newSection = document.getElementById('editInvSectionSelect').value;
             if(!newName) return;
 
-            invDb[cat][idx].name = newName;
-            invDb[cat][idx].qty = editInvQtyVal;
+            invDb[cat][realIdx].name = newName;
+            invDb[cat][realIdx].section = newSection;
+            invDb[cat][realIdx].qty = editInvQtyVal;
 
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             closeEditInvModal();
@@ -504,25 +527,41 @@
                 return;
             }
 
-            items.forEach((item, idx) => {
-                container.innerHTML += `
-                    <div class="inv-card-container">
-                        <div class="inv-delete-bg" onclick="deleteInvItem('${cat}', ${idx})">Suppr.</div>
-                        <div class="inv-card">
-                            <div class="inv-card-info">
-                                <div class="inv-card-title">${item.name}</div>
-                            </div>
-                            <div class="action-btn-group">
-                                <button class="icon-btn" onclick="openEditInvModal('${cat}', ${idx})" title="Éditer">✏️</button>
-                                <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
-                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, -1)">-</button>
-                                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                                    <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${idx}, 1)">+</button>
+            // Regrouper par section
+            const sectionsMap = {};
+            items.forEach((item, originalIdx) => {
+                const sec = item.section || "Autre";
+                if(!sectionsMap[sec]) sectionsMap[sec] = [];
+                sectionsMap[sec].push({ item, originalIdx });
+            });
+
+            // Afficher par section
+            for(const [sectionName, group] of Object.entries(sectionsMap)) {
+                container.innerHTML += `<div class="section-header-title">${sectionName}</div>`;
+                
+                group.forEach(entry => {
+                    const item = entry.item;
+                    const realIdx = entry.originalIdx;
+                    
+                    container.innerHTML += `
+                        <div class="inv-card-container">
+                            <div class="inv-delete-bg" onclick="deleteInvItem('${cat}', ${realIdx})">Suppr.</div>
+                            <div class="inv-card">
+                                <div class="inv-card-info">
+                                    <div class="inv-card-title">${item.name}</div>
+                                </div>
+                                <div class="action-btn-group">
+                                    <button class="icon-btn" onclick="openEditInvModal('${cat}', ${realIdx})" title="Éditer">✏️</button>
+                                    <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
+                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${realIdx}, -1)">-</button>
+                                        <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                                        <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${cat}', ${realIdx}, 1)">+</button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>`;
-            });
+                        </div>`;
+                });
+            }
 
             setTimeout(() => initSwipeEvents(cat), 50);
         }
