@@ -41,18 +41,23 @@
 
         .input-area { padding: 10px 15px; background: white; border-bottom: 1px solid #eee; display: flex; flex-direction: column; gap: 8px; flex-shrink: 0; }
         .input-row { display: flex; gap: 8px; }
-        input { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; }
+        input, select { padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 16px; outline: none; width: 100%; box-sizing: border-box; background: white; }
         #itemInput { flex: 1; }
         .btn-add { background: var(--primary); color: white; border: none; width: 50px; border-radius: 10px; font-size: 24px; cursor: pointer; }
         .total-banner { background: #2c3e50; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-weight: bold; flex-shrink: 0; }
         
-        #itemList, .inv-list { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; background: #fff; -webkit-overflow-scrolling: touch; }
+        #itemList { list-style: none; padding: 0; margin: 0; flex: 1; overflow-y: auto; min-height: 0; background: #fff; -webkit-overflow-scrolling: touch; }
         li { padding: 12px 15px; border-bottom: 1px solid #f1f1f1; display: flex; align-items: center; gap: 12px; }
         .item-info { flex: 1; }
         .btn-clear { margin: 10px 15px 30px 15px; padding: 15px; background: #95a5a6; color: white; border: none; border-radius: 12px; font-weight: bold; flex-shrink: 0; cursor: pointer; }
 
-        /* INVENTAIRE & NAVBAR */
-        .inv-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: white; }
+        /* INVENTAIRE & NAVBAR & CARTES */
+        .inv-content { flex: 1; display: flex; flex-direction: column; overflow-y: auto; background: var(--bg); padding: 15px; -webkit-overflow-scrolling: touch; }
+        .inv-card { background: white; padding: 15px; border-radius: 14px; margin-bottom: 12px; box-shadow: 0 3px 10px rgba(0,0,0,0.05); display: flex; align-items: center; justify-content: space-between; }
+        .inv-card-info { flex: 1; }
+        .inv-card-title { font-weight: bold; font-size: 1.05em; color: var(--text); }
+        .inv-card-sub { font-size: 0.8em; color: #888; margin-top: 3px; text-transform: capitalize; }
+        
         .navbar-bottom { height: 65px; background: white; border-top: 1px solid #ddd; display: flex; justify-content: space-around; align-items: center; flex-shrink: 0; }
         .nav-item { background: none; border: none; display: flex; flex-direction: column; align-items: center; font-size: 0.75em; color: #777; cursor: pointer; gap: 3px; }
         .nav-item span { font-size: 1.4em; }
@@ -64,7 +69,9 @@
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); align-items: center; justify-content: center; }
         .modal-content { background: white; padding: 20px; border-radius: 20px; width: 85%; max-width: 320px; box-sizing: border-box; }
         .qty-control { display: flex; align-items: center; justify-content: space-between; margin: 15px 0; background: #eee; border-radius: 10px; padding: 5px; }
-        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; }
+        .qty-btn { background: white; border: 1px solid #ccc; width: 40px; height: 40px; border-radius: 8px; font-size: 20px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .action-btn-group { display: flex; align-items: center; gap: 8px; }
+        .icon-btn { background: none; border: none; font-size: 18px; cursor: pointer; padding: 5px; color: #666; }
     </style>
 </head>
 <body>
@@ -118,8 +125,8 @@
             <h2 id="inv-title">Cannages</h2>
             <div style="width: 70px;"></div>
         </div>
-        <div class="inv-content">
-            <ul id="invList" class="inv-list"></ul>
+        <div class="inv-content" id="invContainer">
+            <!-- Les cartes d'inventaire s'afficheront ici -->
         </div>
         <button class="btn-fab" onclick="openInvModal()">+</button>
         <div class="navbar-bottom">
@@ -138,8 +145,8 @@
             <input type="number" id="editQty" placeholder="Quantité" style="margin-bottom:10px">
             <label><input type="checkbox" id="editTaxable"> Taxes</label>
             <div style="display:flex; gap:10px; margin-top:15px">
-                <button onclick="closeModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
-                <button onclick="saveEdit()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">OK</button>
+                <button type="button" onclick="closeModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button type="button" onclick="saveEdit()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">OK</button>
             </div>
         </div>
     </div>
@@ -149,7 +156,7 @@
         <div class="modal-content">
             <h3 style="margin-top:0">Ajouter à l'inventaire</h3>
             <label style="font-size:0.85em; color:#666">Catégorie</label>
-            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Nom de la catégorie..." style="margin-top:4px; margin-bottom:10px">
+            <input type="text" id="invCatInput" list="catSuggestions" placeholder="Ex: cannages, sauces..." style="margin-top:4px; margin-bottom:10px">
             <datalist id="catSuggestions">
                 <option value="cannages">
                 <option value="pates">
@@ -169,6 +176,29 @@
             <div style="display:flex; gap:10px; margin-top:15px">
                 <button type="button" onclick="closeInvModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
                 <button type="button" onclick="saveInvItem()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Ajouter</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODALE EDITION PRODUIT INVENTAIRE (AVEC CRAYON) -->
+    <div id="editInvModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-top:0">Modifier le produit</h3>
+            <label style="font-size:0.85em; color:#666">Catégorie</label>
+            <input type="text" id="editInvCatInput" style="margin-top:4px; margin-bottom:10px">
+
+            <label style="font-size:0.85em; color:#666">Produit</label>
+            <input type="text" id="editInvNameInput" style="margin-top:4px; margin-bottom:12px">
+            
+            <label style="font-size:0.85em; color:#666">Quantité</label>
+            <div class="qty-control">
+                <button type="button" class="qty-btn" onclick="adjustEditInvQty(-1)">-</button>
+                <span id="editInvModalQty" style="font-size: 1.2em; font-weight: bold;">1</span>
+                <button type="button" class="qty-btn" onclick="adjustEditInvQty(1)">+</button>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px">
+                <button type="button" onclick="closeEditInvModal()" style="flex:1; padding:10px; border-radius:8px; border:1px solid #ccc; cursor:pointer;">Annuler</button>
+                <button type="button" onclick="saveEditInvItem()" style="flex:1; padding:10px; background:var(--primary); color:white; border:none; border-radius:8px; cursor:pointer;">Enregistrer</button>
             </div>
         </div>
     </div>
@@ -197,6 +227,11 @@
         let currentEditIdx = null;
         let invTabActuel = "cannages";
         let modalQtyVal = 1;
+        
+        // Pour l'édition d'un produit existant via le crayon
+        let currentEditInvCat = "";
+        let currentEditInvIdx = null;
+        let editInvQtyVal = 1;
 
         const grille = document.getElementById('grille');
         magasins.forEach(m => {
@@ -315,17 +350,10 @@
             invDb[cat].push({ name: name, qty: modalQtyVal });
             localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
             
-            invTabActuel = cat;
             closeInvModal();
+            invTabActuel = cat; // Reste dans la catégorie active
             
-            const navButtons = document.querySelectorAll('.navbar-bottom .nav-item');
-            navButtons.forEach(btn => {
-                btn.classList.remove('active-nav');
-                if(btn.getAttribute('onclick') && btn.getAttribute('onclick').includes(cat)) {
-                    btn.classList.add('active-nav');
-                }
-            });
-            
+            // Met à jour visuellement le titre de la page
             const titles = {cannages: "Cannages", pates: "Pâtes", collations: "Collations", boites: "Boîtes"};
             document.getElementById('inv-title').innerText = titles[cat] || cat;
             afficherInventaire();
@@ -340,28 +368,71 @@
             afficherInventaire();
         }
 
+        /* MODALE EDITION PRODUIT INVENTAIRE (CRAYON) */
+        function openEditInvModal(cat, idx) {
+            currentEditInvCat = cat;
+            currentEditInvIdx = idx;
+            const item = invDb[cat][idx];
+            editInvQtyVal = item.qty;
+            document.getElementById('editInvCatInput').value = cat;
+            document.getElementById('editInvNameInput').value = item.name;
+            document.getElementById('editInvModalQty').innerText = editInvQtyVal;
+            document.getElementById('editInvModal').style.display = 'flex';
+        }
+        function closeEditInvModal() { document.getElementById('editInvModal').style.display = 'none'; }
+        function adjustEditInvQty(val) {
+            editInvQtyVal = Math.max(0, editInvQtyVal + val);
+            document.getElementById('editInvModalQty').innerText = editInvQtyVal;
+        }
+        function saveEditInvItem() {
+            const newName = document.getElementById('editInvNameInput').value.trim();
+            let newCat = document.getElementById('editInvCatInput').value.trim().toLowerCase();
+            if(!newName || !newCat) return;
+
+            // Retirer de l'ancienne position
+            invDb[currentEditInvCat].splice(currentEditInvIdx, 1);
+            if(invDb[currentEditInvCat].length === 0 && currentEditInvCat !== invTabActuel) {
+                delete invDb[currentEditInvCat];
+            }
+
+            // Ajouter dans la nouvelle (ou même) catégorie
+            if(!invDb[newCat]) invDb[newCat] = [];
+            invDb[newCat].push({ name: newName, qty: editInvQtyVal });
+
+            localStorage.setItem('monInventaireDB', JSON.stringify(invDb));
+            closeEditInvModal();
+            invTabActuel = newCat;
+            const titles = {cannages: "Cannages", pates: "Pâtes", collations: "Collations", boites: "Boîtes"};
+            document.getElementById('inv-title').innerText = titles[newCat] || newCat;
+            afficherInventaire();
+        }
+
         function afficherInventaire() {
-            const ul = document.getElementById('invList');
-            ul.innerHTML = "";
+            const container = document.getElementById('invContainer');
+            container.innerHTML = "";
             const items = invDb[invTabActuel] || [];
             
             if(items.length === 0) {
-                ul.innerHTML = `<li style="justify-content:center; color:#999; padding:30px;">Aucun article dans cette section</li>`;
+                container.innerHTML = `<div style="text-align:center; color:#999; padding:40px;">Aucun article dans cette section</div>`;
                 return;
             }
 
             items.forEach((item, idx) => {
-                ul.innerHTML += `
-                    <li>
-                        <div class="item-info">
-                            <div style="font-weight:bold">${item.name}</div>
+                container.innerHTML += `
+                    <div class="inv-card">
+                        <div class="inv-card-info">
+                            <div class="inv-card-title">${item.name}</div>
+                            <div class="inv-card-sub">Catégorie : ${invTabActuel}</div>
                         </div>
-                        <div style="display:flex; align-items:center; gap:10px;">
-                            <button type="button" class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
-                            <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
-                            <button type="button" class="qty-btn" style="width:30px; height:30px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
+                        <div class="action-btn-group">
+                            <button class="icon-btn" onclick="openEditInvModal('${invTabActuel}', ${idx})" title="Éditer">✏️</button>
+                            <div style="display:flex; align-items:center; gap:8px; margin-left:8px;">
+                                <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, -1)">-</button>
+                                <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                                <button type="button" class="qty-btn" style="width:32px; height:32px; font-size:16px;" onclick="updateInvQty('${invTabActuel}', ${idx}, 1)">+</button>
+                            </div>
                         </div>
-                    </li>`;
+                    </div>`;
             });
         }
 
