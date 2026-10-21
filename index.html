@@ -77,10 +77,10 @@
       box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
     }
 
-    /* HEADER MAGASINS */
+    /* HEADER MAGASINS (Descendu pour éviter la barre d'état iOS) */
     .header-magasins { 
       position: relative;
-      padding: 20px 15px 15px 15px; 
+      padding: 55px 15px 15px 15px; 
       margin: 0; 
       background: white; 
       border-bottom: 1px solid #eee; 
@@ -190,7 +190,7 @@
 
     /* LISTE PAGE */
     .header-liste { 
-      padding: 40px 15px 12px 15px; 
+      padding: 55px 15px 12px 15px; 
       background: white; 
       display: flex; 
       flex-direction: column; 
@@ -204,7 +204,7 @@
     .btn-back { 
       position: absolute; 
       left: 15px; 
-      top: 50%; 
+      top: 62%; 
       transform: translateY(-50%); 
       border: none; 
       background: #eee; 
@@ -427,7 +427,6 @@
         if(bC) { bC.innerText = n; bC.style.visibility = n > 0 ? 'visible' : 'hidden'; }
         if(bK) bK.style.visibility = n > 0 ? 'visible' : 'hidden';
 
-        // Calculer le total pour ce magasin (incluant taxes si présentes)
         let totalMagasin = 0;
         items.forEach(it => {
           const sousTotal = (it.p || 0) * (it.q || 1);
@@ -436,7 +435,6 @@
         grandTotalGlobal += totalMagasin;
       });
 
-      // Mettre à jour l'affichage du rectangle global dans le header
       const totalGlobalEl = document.getElementById('total-general-magasins');
       if(totalGlobalEl) {
         totalGlobalEl.innerText = grandTotalGlobal.toFixed(2) + " $";
