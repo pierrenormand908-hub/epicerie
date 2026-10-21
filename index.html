@@ -77,10 +77,13 @@
       box-shadow: 0 4px 15px rgba(39, 174, 96, 0.3);
     }
 
-    /* HEADER MAGASINS (Descendu pour éviter la barre d'état iOS) */
+    /* HEADER MAGASINS (Sécurisé pour l'encoche et la zone de l'heure/batterie) */
     .header-magasins { 
       position: relative;
-      padding: 55px 15px 15px 15px; 
+      padding-top: calc(env(safe-area-inset-top, 20px) + 20px);
+      padding-bottom: 15px;
+      padding-left: 15px;
+      padding-right: 15px;
       margin: 0; 
       background: white; 
       border-bottom: 1px solid #eee; 
@@ -190,7 +193,10 @@
 
     /* LISTE PAGE */
     .header-liste { 
-      padding: 55px 15px 12px 15px; 
+      padding-top: calc(env(safe-area-inset-top, 20px) + 20px);
+      padding-bottom: 12px;
+      padding-left: 15px;
+      padding-right: 15px;
       background: white; 
       display: flex; 
       flex-direction: column; 
